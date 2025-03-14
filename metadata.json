@@ -1,0 +1,19 @@
+{
+    "name": "due_diligence_agent",
+    "version": "0.0.2",
+    "namespace": "turing_rhmor.near",
+    "description": "Automated multi-agent system for conducting due diligence analysis in 10 minutes.",
+    "category": "agent",
+    "tags": ["due diligence", "automation", "AI", "research", "reporting"],
+    "details": {
+        "agent": {
+        "defaults": {
+            "model": "llama-v3p1-70b-instruct",
+            "model_provider": "fireworks",
+            "model_temperature": 1.0,
+            "model_max_tokens": 16384
+        }
+        }
+    },
+    "show_entry": true
+}
