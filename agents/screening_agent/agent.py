@@ -6,6 +6,7 @@ based on predefined criteria. It analyzes company data, founders, tech stack, an
 """
 
 import json
+import os
 import random
 from typing import Optional, Dict, Any, List
 from enum import Enum

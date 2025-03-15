@@ -2,6 +2,7 @@ from pocketflow import Node
 import requests
 from bs4 import BeautifulSoup
 import os
+import openai
 
 class BaseAgent(Node):
     def __init__(self, name="BaseAgent"):
@@ -62,6 +63,41 @@ class BaseAgent(Node):
             return title, text
         except Exception as e:
             return f"Error scraping {url}: {str(e)}", ""
+    
+    def get_o3mini_model(self, temperature=0.7):
+        """
+        Get the o3mini model instance.
+        
+        Args:
+            temperature (float): The temperature to use for generation
+            
+        Returns:
+            function: A function that can be used to generate text with the model
+        """
+        # Ensure client is initialized
+        if not hasattr(self, 'client'):
+            self.client = openai.Client(api_key=self.api_keys.get("OPENAI_API_KEY"))
+        
+        def generate_text(prompt):
+            try:
+                response = self.client.chat.completions.create(
+                    model="o3-mini",
+                    messages=[
+                        {
+                            "role": "user", 
+                            "content": prompt
+                        }
+                    ],
+                    max_tokens=2000,
+                    temperature=temperature,
+                )
+                return response.choices[0].message.content
+            except Exception as e:
+                print(f"Error generating text: {e}")
+                return None
+        
+        return generate_text
+
     
     # Node methods that can be overridden by child agents
     def prep(self, shared):
