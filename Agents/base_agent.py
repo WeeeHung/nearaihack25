@@ -64,7 +64,7 @@ class BaseAgent(Node):
         except Exception as e:
             return f"Error scraping {url}: {str(e)}", ""
     
-    def get_o3mini_model(self, temperature=0.7):
+    def get_4omini_model(self, temperature=0.7):
         """
         Get the o3mini model instance.
         
@@ -81,7 +81,7 @@ class BaseAgent(Node):
         def generate_text(prompt):
             try:
                 response = self.client.chat.completions.create(
-                    model="o3-mini",
+                    model="gpt-4o-mini",
                     messages=[
                         {
                             "role": "user", 
