@@ -1,0 +1,83 @@
+{
+  "name": "TechInnovate Inc.",
+  "industry": "Software",
+  "funding_stage": "Series B",
+  "founding_year": 2018,
+  "employees": 85,
+  "founders": [
+    {"name": "Jane Smith", "role": "CEO", "background": "Former Google PM"},
+    {"name": "Michael Chen", "role": "CTO", "background": "MIT CS PhD"}
+  ],
+  "funding": {
+    "total_raised": "$32M",
+    "latest_round": {
+      "amount": "$20M",
+      "date": "2024-01-15",
+      "investors": ["Sequoia Capital", "Andreessen Horowitz"]
+    },
+    "previous_rounds": [
+      {
+        "type": "Seed",
+        "amount": "$2M",
+        "date": "2020-05-10"
+      },
+      {
+        "type": "Series A",
+        "amount": "$10M",
+        "date": "2022-08-22"
+      }
+    ]
+  },
+  "product": {
+    "description": "AI-powered enterprise workflow automation platform",
+    "key_features": [
+      "Natural language processing for document understanding",
+      "Workflow automation with minimal coding",
+      "Integration with major enterprise systems"
+    ],
+    "target_market": "Mid to large enterprises in finance and healthcare"
+  },
+  "financials": {
+    "annual_revenue": "$5.8M",
+    "burn_rate": "$400K/month",
+    "runway": "14 months"
+  },
+  "market": {
+    "total_addressable_market": "$50B",
+    "serviceable_available_market": "$15B",
+    "key_competitors": [
+      "WorkflowAI",
+      "AutomateX",
+      "Enterprise Flow"
+    ]
+  },
+  "tech_stack": {
+    "languages": ["Python", "TypeScript", "Go"],
+    "frameworks": ["TensorFlow", "React", "FastAPI"],
+    "infrastructure": ["AWS", "Kubernetes", "Docker"]
+  },
+  "intellectual_property": {
+    "patents": 3,
+    "pending_patents": 7,
+    "trade_secrets": "Proprietary NLP algorithm"
+  },
+  "team": {
+    "leadership": [
+      {"name": "Jane Smith", "role": "CEO", "experience": "15 years in tech"},
+      {"name": "Michael Chen", "role": "CTO", "experience": "10 years in AI research"},
+      {"name": "Sarah Johnson", "role": "COO", "experience": "12 years in operations"}
+    ],
+    "key_hires": [
+      {"name": "David Kim", "role": "VP Engineering", "previous": "Former Amazon Engineering Lead"},
+      {"name": "Rachel Patel", "role": "VP Sales", "previous": "Former Oracle Sales Director"}
+    ],
+    "total_headcount": 85,
+    "engineering_ratio": 0.65
+  },
+  "risks": {
+    "technical": ["AI model accuracy scaling", "Data security compliance"],
+    "market": ["Increasing competition", "Market saturation in key segments"],
+    "financial": ["High customer acquisition cost", "Extended enterprise sales cycles"],
+    "operational": ["Remote-first culture challenges", "Key person dependencies"]
+  }
+} 
