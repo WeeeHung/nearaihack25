@@ -145,7 +145,7 @@ competition_json = {
         "similarities": [],
         "differences": []
     },
-    "is_direct": false
+    "is_direct": False
 }
 
 
