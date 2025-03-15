@@ -5,6 +5,8 @@
 __pycache__/
 # all .pyc files
 *.pyc
+Dependencies/
+# requirements.txt
 
 
 # Environment variables

@@ -16,18 +16,13 @@ def run(env: Environment):
                    "Ask users for any additional information needed to complete a thorough analysis."
     }
 
-    # Use the model set in the metadata to generate a response
-    # result = env.completion([prompt] + env.list_messages()) # including the prompt with the full chat history (TODO: check if this is necessary)
+    screening_agent = ScreeningAgent(env)
+    due_diligence_report_agent = DueDiligenceReportAgent(env)
 
-    screening_output = ScreeningAgent.run(prompt)
-    # Other outputs by other agents
+    screening_output = screening_agent.run(prompt)
+    report_output = due_diligence_report_agent.run([screening_output])
 
-    report_output = DueDiligenceReportAgent.run([screening_output])
-
-    result = report_output
-    # Store the result in the chat history
-    env.add_reply(result)
-
+    env.add_reply(report_output)
     # Give the prompt back to the user
     env.request_user_input()
 

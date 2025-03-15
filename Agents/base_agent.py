@@ -1,12 +1,15 @@
-from pocketflow import Node
+from Dependencies.pocketflow import Node
 import requests
-from bs4 import BeautifulSoup
+# from Dependencies.bs4 import BeautifulSoup
 import os
 import openai
+
+from nearai.agents.environment import Environment
+
 import json
 
 class BaseAgent(Node):
-    def __init__(self, name="BaseAgent"):
+    def __init__(self, env: Environment, name="BaseAgent"):
         """
         Initialize the base agent with common functionality.
         
@@ -16,6 +19,7 @@ class BaseAgent(Node):
             wait (int): Wait time between retries in seconds
         """
         self.name = name
+        self.env = env
         self.api_keys = {}
         
         # Load API keys from environment variables
@@ -27,43 +31,45 @@ class BaseAgent(Node):
         possible_keys = [
             "OPENAI_API_KEY",
         ]
-        
+
         for key in possible_keys:
-            if key in os.environ:
-                self.api_keys[key] = os.environ[key]
+            # if key in os.environ:
+            if key in self.env.env_vars:
+                # self.api_keys[key] = os.environ[key]
+                self.api_keys[key] = self.env.env_vars[key]
     
-    def scrape(self, url):
-        """
-        Scrape content from a web page.
+    # def scrape(self, url):
+    #     """
+    #     Scrape content from a web page.
         
-        Args:
-            url (str): URL to scrape
+    #     Args:
+    #         url (str): URL to scrape
             
-        Returns:
-            tuple: (title, text content)
-        """
-        try:
-            response = requests.get(url, headers={
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-            })
-            response.raise_for_status()
+    #     Returns:
+    #         tuple: (title, text content)
+    #     """
+    #     try:
+    #         response = requests.get(url, headers={
+    #             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+    #         })
+    #         response.raise_for_status()
             
-            soup = BeautifulSoup(response.text, "html.parser")
-            title = soup.title.string if soup.title else "No title found"
+    #         soup = BeautifulSoup(response.text, "html.parser")
+    #         title = soup.title.string if soup.title else "No title found"
             
-            # Remove script and style elements
-            for script in soup(["script", "style", "nav", "footer", "header"]):
-                script.extract()
+    #         # Remove script and style elements
+    #         for script in soup(["script", "style", "nav", "footer", "header"]):
+    #             script.extract()
                 
-            text = soup.get_text(separator='\n')
-            # Clean up text
-            lines = (line.strip() for line in text.splitlines())
-            chunks = (phrase.strip() for line in lines for phrase in line.split("  "))
-            text = '\n'.join(chunk for chunk in chunks if chunk)
+    #         text = soup.get_text(separator='\n')
+    #         # Clean up text
+    #         lines = (line.strip() for line in text.splitlines())
+    #         chunks = (phrase.strip() for line in lines for phrase in line.split("  "))
+    #         text = '\n'.join(chunk for chunk in chunks if chunk)
             
-            return title, text
-        except Exception as e:
-            return f"Error scraping {url}: {str(e)}", ""
+    #         return title, text
+    #     except Exception as e:
+    #         return f"Error scraping {url}: {str(e)}", ""
     
     def search_web(self, query):
         """
