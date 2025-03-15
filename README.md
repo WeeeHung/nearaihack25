@@ -39,6 +39,8 @@ DiligenceAI follows a modular architecture based on the PocketFlow framework:
 
 ![alt text](Arch Final Diagram.png)
 
+![Detailed DiligenceAI System Architecture and Data Flow](Detailed Flowchart.png)
+
 Key architectural features:
 - **Agent Orchestration**: Central coordination of specialized agents
 - **Data Sharing**: Structured mechanism for agents to exchange insights
