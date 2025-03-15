@@ -33,12 +33,15 @@ DiligenceAI addresses these challenges by automating information gathering and a
 - **Due Diligence Report Agent**: Aggregates data from other agents and generates a comprehensive report
 - **Final Decision Agent**: Provides an overall assessment and recommendation
 
-## 🏗️ Technical Architecture
 
-DiligenceAI follows a modular architecture based on the PocketFlow framework:
+
+## 🗺️ Flow Chart
 
 <img width="463" alt="Screen Shot 2025-03-15 at 9 37 39 AM" src="https://github.com/user-attachments/assets/a5d8149f-c5fe-4d92-a41e-6449a7d420ce" />
 
+## 🏗️ Technical Architecture
+
+DiligenceAI follows a modular architecture based on the PocketFlow framework
 
 Key architectural features:
 - **Agent Orchestration**: Central coordination of specialized agents
