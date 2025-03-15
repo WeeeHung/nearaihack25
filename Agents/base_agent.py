@@ -2,7 +2,6 @@ from pocketflow import Node
 import requests
 from bs4 import BeautifulSoup
 import os
-from dotenv import load_dotenv
 import openai
 
 class BaseAgent(Node):
@@ -27,8 +26,6 @@ class BaseAgent(Node):
         possible_keys = [
             "OPENAI_API_KEY",
         ]
-
-        load_dotenv()
         
         for key in possible_keys:
             if key in os.environ:
@@ -67,7 +64,7 @@ class BaseAgent(Node):
         except Exception as e:
             return f"Error scraping {url}: {str(e)}", ""
     
-    def get_o3mini_model(self, temperature=0.7):
+    def get_4omini_model(self, temperature=0.7):
         """
         Get the o3mini model instance.
         
@@ -101,6 +98,7 @@ class BaseAgent(Node):
         
         return generate_text
 
+    
     # Node methods that can be overridden by child agents
     def prep(self, shared):
         """
