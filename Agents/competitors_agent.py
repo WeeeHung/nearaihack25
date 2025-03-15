@@ -138,7 +138,6 @@ class CompetitorsAgent(BaseAgent):
             model="gpt-4o-search-preview",
             web_search_options={},
             messages=[{"role": "user", "content": search_prompt}],
-            max_tokens=5000
         )
         
         # Get the detailed information from the search

@@ -1,0 +1,30 @@
+{
+  "WeeHung": {
+    "name": "WeeHung",
+    "url": "https://www.linkedin.com/in/chiam-wee-hung/",
+    "experiences": [
+      {
+        "company": "Company Name",
+        "title": "Job Title",
+        "duration": "Time Period",
+        "description": "Key responsibilities and achievements"
+      }
+    ],
+    "education": [
+      {
+        "institution": "School Name",
+        "degree": "Degree Type",
+        "fieldOfStudy": "Field",
+        "dates": "Time Period"
+      }
+    ],
+    "achievements": [
+      "Achievement 1",
+      "Achievement 2"
+    ],
+    "skills": [
+      "Skill 1",
+      "Skill 2"
+    ]
+  }
+}
