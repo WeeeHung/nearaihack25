@@ -1,8 +1,11 @@
 /venv
 /nearai
 
-# pycache
-__pycache__
+# all pycache
+__pycache__/
+# all .pyc files
+*.pyc
+
 
 # Environment variables
 .env
