@@ -36,10 +36,8 @@ DiligenceAI addresses these challenges by automating information gathering and a
 
 
 ## 🗺️ Flow Chart
-<!-- 
-<img width="463" alt="Screen Shot 2025-03-15 at 9 37 39 AM" src="https://github.com/user-attachments/assets/a5d8149f-c5fe-4d92-a41e-6449a7d420ce" /> -->
 
-<img width="1019" alt="Screen Shot 2025-03-15 at 11 25 56 AM" src="https://github.com/user-attachments/assets/d21ea9db-06fd-4991-91f0-7b3eb78f5a2a" />
+<img width="1019" alt="Screen Shot 2025-03-15 at 11 25 56 AM" src="./architecture_diagram.png" />
 
 
 ## 🏗️ Technical Architecture
