@@ -8,5 +8,5 @@ __pycache__/
 
 
 # Environment variables
-.env
-.cursorrules
+*.env
+*.cursorrules
