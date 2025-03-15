@@ -3,6 +3,8 @@ Screening Agent for Multi-Agent Due Diligence System
 
 This script implements a screening agent that evaluates startups and private companies
 based on predefined criteria. It analyzes company data, founders, tech stack, and investment history.
+
+Updated: Added improved documentation and functionality
 """
 
 import json
