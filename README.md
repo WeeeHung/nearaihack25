@@ -27,8 +27,6 @@ DiligenceAI addresses these challenges by automating information gathering and a
 
 - **Screening Agent**: Initial assessment and data collection for target companies
 - **Market Analysis Agent**: Analyzes market trends, size, competitors, and growth potential
-- **Financial Agent**: Evaluates financial health, metrics, projections, and risks
-- **Legal Agent**: Identifies legal risks, regulatory issues, and compliance challenges
 - **Competitors Agent**: Analyzes competitive landscape, market share, and competitive advantages
 - **Team Evaluation Agent**: Assesses leadership team, expertise, and organizational structure
 - **Technical Due Diligence Agent**: Evaluates technical infrastructure, IP, and innovation potential
