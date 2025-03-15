@@ -129,21 +129,25 @@ legal_json = {
       }
 
 competition_json = {
-        "market_landscape": {
-          "direct_competitors": [],
-          "indirect_competitors": [],
-          "competitive_advantage": ""
-        },
-        "competitive_analysis": {
-          "pricing_comparison": "",
-          "strengths_and_weaknesses": "",
-          "barriers_to_entry": ""
-        },
-        "market_share": {
-          "current_share": "",
-          "expected_growth": ""
-        }
-      }
+    "companyProfile": {
+        "name": "",
+        "yearFounded": "",
+        "headquarters": "",
+        "website": "",
+        "fundingStage": "",
+        "lastFundedAmount": "",
+        "totalFundsRaised": "",
+        "lastValuation": "",
+        "investors": []
+    },
+    "description": "",
+    "comparisons": {
+        "similarities": [],
+        "differences": []
+    },
+    "is_direct": false
+}
+
 
 output_format_screening = {
       "market_analysis": market_analysis_json,
