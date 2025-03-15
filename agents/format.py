@@ -90,27 +90,49 @@ financial_json = {
       }
 
 tech_deep_dive_json = {
-        "technology_stack": {
-          "frontend": "",
-          "backend": "",
-          "database": "",
-          "cloud_infrastructure": ""
+        "company_name": "",
+        "architecture": {
+            "stack": [],
+            "architecture_type": "",
+            "infrastructure": "",
+            "scalability_assessment": "",
+            "security_assessment": "",
+            "technical_debt": ""
         },
-        "product_roadmap": {
-          "short_term_goals": "",
-          "long_term_goals": "",
-          "scalability": ""
+        "technical_differentiation": {
+            "differentiators": [
+                {
+                    "name": "",
+                    "description": "",
+                    "advantage_level": "",  # Low/Medium/High
+                    "sustainability": ""
+                }
+            ]
         },
-        "technical_challenges": {
-          "development_risks": "",
-          "data_security": ""
+        "team_technical_assessment": {
+            "technical_expertise_match": "",  # Low/Medium/High
+            "technical_leadership": "",
+            "key_strengths": [],
+            "gaps": [],
+            "risk_assessment": ""
         },
-        "intellectual_property": {
-          "patents": "",
-          "trademarks": "",
-          "proprietary_technology": ""
+        "engineering_factors": {
+            "factors": [
+                {
+                    "name": "",
+                    "assessment": "",
+                    "impact": ""  # Low/Medium/High
+                }
+            ]
+        },
+        "summary": {
+            "executive_summary": "",
+            "strengths": [],
+            "risks": [],
+            "viability_rating": "",  # Low/Medium/High
+            "recommendations": []
         }
-      }
+}
 
 legal_json = {
         "corporate_structure": {
@@ -151,9 +173,9 @@ competition_json = {
 
 output_format_screening = {
       "market_analysis": market_analysis_json,
-      "team_eval": team_evaluation_json,
+      "team_data": team_evaluation_json,
       "financial": financial_json,
-      "tech_deep_dive": tech_deep_dive_json,
+      "company_info": tech_deep_dive_json,
       "legal": legal_json,
       "competition": competition_json
     }

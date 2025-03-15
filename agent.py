@@ -3,9 +3,12 @@ import json
 
 # IMPORT THE MULTI-AGENT SYSTEM
 from Agents.screening_agent import ScreeningAgent
+# from Agents.market_analysis_agent import MarketAnalysisAgent
 from Agents.due_dillegence_report_agent import DueDiligenceReportAgent
 from Agents.financials_agent import FinancialsAgent
 from Agents.competitors_agent import CompetitorsAgent
+from Agents.tech_dd_agent import TechDdAgent
+
 def run(env: Environment):
     # A system message guides an agent to solve specific tasks.
     prompt = {
@@ -24,6 +27,7 @@ def run(env: Environment):
     financials_agent = FinancialsAgent(env)
     competitors_agent = CompetitorsAgent(env)
     due_diligence_report_agent = DueDiligenceReportAgent(env)
+    tech_dd_agent = TechDdAgent(env)
 
     env.add_system_log("All agents initialized")
 
@@ -32,9 +36,10 @@ def run(env: Environment):
     message_strings = [str(msg) for msg in messages]
     
     screening_output = screening_agent.run([system_prompt] + message_strings)
+    tech_dd_output = tech_dd_agent.run(screening_output)
     financials_output = financials_agent.run(screening_output)
     competitors_output = competitors_agent.run(screening_output)
-    report_output = due_diligence_report_agent.run([screening_output, financials_output, competitors_output])
+    report_output = due_diligence_report_agent.run([screening_output, financials_output, competitors_output, tech_dd_output])
     
     env.add_reply(report_output)
     # Give the prompt back to the user

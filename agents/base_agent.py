@@ -1,11 +1,12 @@
-# from Dependencies.pocketflow import Node
+from Dependencies.pocketflow import Node
 # from Dependencies.bs4 import BeautifulSoup
 import os
 import json
 import openai
+import requests
 from nearai.agents.environment import Environment
-from pocketflow import Node
-from bs4 import BeautifulSoup
+# from pocketflow import Node
+# from bs4 import BeautifulSoup
 
 class BaseAgent(Node):
     def __init__(self, env: Environment, name="BaseAgent"):
@@ -54,6 +55,7 @@ class BaseAgent(Node):
     #     Returns:
     #         tuple: (title, text content)
     #     """
+    #     self.env.add_system_log(f"Scraping {url}")
     #     try:
     #         response = requests.get(url, headers={
     #             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
@@ -259,7 +261,6 @@ class BaseAgent(Node):
                                 "content": prompt
                             }
                         ],
-                        max_tokens=2000,
                         temperature=temperature,
                     )
                     return response.choices[0].message.content

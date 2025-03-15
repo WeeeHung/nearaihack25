@@ -1,13 +1,14 @@
 import openai
 import json
-from base_agent import BaseAgent
+from .base_agent import BaseAgent
+from nearai.agents.environment import Environment
 
 class TechDdAgent(BaseAgent):
-    def __init__(self, name="TechDdAgent", max_retries=2):
+    def __init__(self, env:Environment, name="TechDdAgent", max_retries=2):
         """Initialize the tech DD agent."""
-        super().__init__(name)
-        self._load_api_keys()
+        super().__init__(env, name)
         self.client = openai.Client(api_key=self.api_keys.get("OPENAI_API_KEY"))
+        self.env.add_system_log("TechDdAgent initialized")
 
     def prep(self, shared):
         """Extract relevant company data from shared store."""
@@ -16,22 +17,31 @@ class TechDdAgent(BaseAgent):
             "team_data": shared.get("team_profiles", {})
         }
 
-    def exec(self, data):
+    def run(self, data):
         """Perform technical due diligence analysis."""
-        company_name = self._extract_company_name(data["company_info"])
+        self.env.add_system_log("Running TechDdAgent")
+        print("running tech dd agent")
+        print(data)
+
+        # check if company_info is a valid key in data:
+        if "company_info" not in data:
+            self.env.add_system_log("company_info is not a valid key in data")
+            return {}
+        
+        company_name = self._extract_company_name(data["company_info"]) if data["company_info"] else ""
         
         # Create analysis structure
         tech_dd = {
-            "architecture": self._analyze_architecture(data["company_info"]),
-            "technical_differentiation": self._analyze_differentiation(data["company_info"]),
-            "team_technical_assessment": self._analyze_team(data["team_data"], data["company_info"]),
-            "engineering_factors": self._analyze_engineering_factors(data),
+            "architecture": self._analyze_architecture(data["company_info"]) if data["company_info"] else {},
+            "technical_differentiation": self._analyze_differentiation(data["company_info"]) if data["company_info"] else {},
+            "team_technical_assessment": self._analyze_team(data["team_data"], data["company_info"]) if data["company_info"] else {},
+            "engineering_factors": self._analyze_engineering_factors(data) if data["company_info"] else {},
             "summary": {}
         }
         
         # Generate summary after all sections are complete
         tech_dd["summary"] = self._generate_summary(tech_dd, company_name)
-        
+        print("end of tech dd agent")
         return tech_dd
 
     def _extract_company_name(self, company_info):
@@ -40,13 +50,7 @@ class TechDdAgent(BaseAgent):
         if not company_info:
             return "Unknown Company"
             
-        prompt = f"Extract only the company name from this text: {company_info[:500]}"
-        response = self.client.chat.completions.create(
-            model="gpt-4o",
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=50
-        )
-        return response.choices[0].message.content.strip() or "Unknown Company"
+        return company_info["company_name"] if "company_name" in company_info else "Unknown Company"
 
     def _analyze_architecture(self, company_info):
         """Analyze technical architecture."""
@@ -221,33 +225,33 @@ class TechDdAgent(BaseAgent):
         print(f"Technical DD report saved to tech_dd_report.json")
         return "default"
 
-if __name__ == "__main__":
-    agent = TechDdAgent()
-    shared = {"data": """
-Company Name: QuantumVision AI
+# if __name__ == "__main__":
+#     agent = TechDdAgent()
+#     shared = {"data": """
+# Company Name: QuantumVision AI
 
-Description: QuantumVision AI is a deep tech startup founded in 2020 that specializes in combining quantum computing algorithms with computer vision to achieve unprecedented accuracy in real-time image recognition and analysis. Their flagship product, QuantumSight, can process and analyze video feeds 100x faster than traditional solutions while using 80% less computational resources.
+# Description: QuantumVision AI is a deep tech startup founded in 2020 that specializes in combining quantum computing algorithms with computer vision to achieve unprecedented accuracy in real-time image recognition and analysis. Their flagship product, QuantumSight, can process and analyze video feeds 100x faster than traditional solutions while using 80% less computational resources.
 
-Technology: The company has developed a proprietary method for encoding visual data in quantum-inspired tensors, allowing for efficient parallel processing on both classical and quantum-ready hardware. Their core algorithm incorporates elements of quantum annealing and tensor network theory to dramatically reduce the dimensionality of visual data while preserving critical information.
+# Technology: The company has developed a proprietary method for encoding visual data in quantum-inspired tensors, allowing for efficient parallel processing on both classical and quantum-ready hardware. Their core algorithm incorporates elements of quantum annealing and tensor network theory to dramatically reduce the dimensionality of visual data while preserving critical information.
 
-Products:
-1. QuantumSight Pro - Enterprise-grade computer vision system for manufacturing quality control
-2. QuantumSight Edge - Lightweight implementation designed for IoT and edge devices
-3. QuantumVision API - Cloud-based API service for developers to integrate vision capabilities
+# Products:
+# 1. QuantumSight Pro - Enterprise-grade computer vision system for manufacturing quality control
+# 2. QuantumSight Edge - Lightweight implementation designed for IoT and edge devices
+# 3. QuantumVision API - Cloud-based API service for developers to integrate vision capabilities
 
-Market: Initially focused on manufacturing quality control, QuantumVision's technology has applications in autonomous vehicles, medical imaging, retail analytics, and security systems. Their current client base includes 3 Fortune 500 manufacturing companies and several mid-sized industrial automation firms.
+# Market: Initially focused on manufacturing quality control, QuantumVision's technology has applications in autonomous vehicles, medical imaging, retail analytics, and security systems. Their current client base includes 3 Fortune 500 manufacturing companies and several mid-sized industrial automation firms.
 
-Business Model: SaaS with tiered pricing based on processing volume, plus consulting services for custom implementations. Enterprise licenses start at $50,000/year.
+# Business Model: SaaS with tiered pricing based on processing volume, plus consulting services for custom implementations. Enterprise licenses start at $50,000/year.
 
-Funding: Seed round of $2M (2020), Series A of $8M (2022) led by TechVentures Capital. Currently preparing for Series B.
+# Funding: Seed round of $2M (2020), Series A of $8M (2022) led by TechVentures Capital. Currently preparing for Series B.
 
-Traction: ARR of $1.5M with 120% YoY growth. 18 enterprise customers with 92% retention rate.
+# Traction: ARR of $1.5M with 120% YoY growth. 18 enterprise customers with 92% retention rate.
 
-Competition: Competing against traditional computer vision companies like Cognex and newer AI-focused startups, though their quantum-inspired approach gives them a unique position in the market.
+# Competition: Competing against traditional computer vision companies like Cognex and newer AI-focused startups, though their quantum-inspired approach gives them a unique position in the market.
 
-Team Size: 24 employees (14 in engineering, 4 in sales/marketing, 3 in operations, 3 in leadership)
-"""}
-    prep_data = agent.prep(shared)
-    exec_data = agent.exec(prep_data)
-    print(exec_data)
+# Team Size: 24 employees (14 in engineering, 4 in sales/marketing, 3 in operations, 3 in leadership)
+# """}
+#     prep_data = agent.prep(shared)
+#     exec_data = agent.exec(prep_data)
+#     print(exec_data)
 

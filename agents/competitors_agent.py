@@ -41,7 +41,7 @@ class CompetitorsAgent(BaseAgent):
             I need to find comprehensive information about competitors for the following company:
             {company_info}
 
-            Please identify AT LEAST 10 competitors, clearly categorizing them as:
+            Please identify AT LEAST 5 competitors, clearly categorizing them as:
             1. Direct competitors (same technology, same business vertical)
             2. Indirect competitors (similar technology but different vertical, or other combinations)
 
@@ -172,6 +172,11 @@ class CompetitorsAgent(BaseAgent):
             
             Ensure you include at least 3 specific similarities and 3 specific differences.
             The "is_direct" field should be true if {competitor_name} competes directly with the original company.
+            Please generate the following information in a valid, clean JSON format without any extra characters or symbols outside the JSON structure:
+            Make sure that there are **no extra spaces** or formatting and that the JSON is **well-formed** for easy parsing.
+            ```json
+                result json
+            ```
         """
         gptmodel = self.get_4o_mini_model(temperature=0.7)
         # Second call: With JSON response format (no web search)
@@ -179,7 +184,7 @@ class CompetitorsAgent(BaseAgent):
         
         # Parse the structured JSON response
         competitor_details = json.loads(parse_response.split("```json")[1].split("```")[0])
-        return parse_response
+        return competitor_details
     
     def post(self, shared, prep_res, exec_res):
         """

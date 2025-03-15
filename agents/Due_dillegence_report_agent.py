@@ -39,7 +39,7 @@ class DueDiligenceReportAgent(BaseAgent):
         
         Use clear, professional language with proper formatting:
         - Use headers and subheaders to organize content
-        - Include bullet points for lists where appropriate
+        - write a comprehensive extract for each section (try to have 2-3 lines each)
         - Bold key findings and important metrics
         - Maintain a neutral, objective tone throughout
         
@@ -66,22 +66,15 @@ class DueDiligenceReportAgent(BaseAgent):
            - Product Roadmap
            - Technical Challenges
            - Intellectual Property
-        6. Legal Review
-           - Corporate Structure
-           - Contracts & Agreements
-           - Compliance & Regulations
-        7. Competitive Landscape
+        6. Competitive Landscape
            - Market Landscape
            - Competitive Analysis
            - Market Share
-        8. Risk Assessment
-           - Key Risks
-           - Mitigation Strategies
-        9. Final Recommendation
+        7. Final Recommendation
 
         Format the report in clean Markdown, with proper sections and subsections.
         It should be 100% factual and based ONLY on the information provided. 
-        It should be like a professional report.
+        It should be like a professional report with full sentences.
         """
         
         report = llm(prompt)

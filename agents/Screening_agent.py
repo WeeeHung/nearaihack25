@@ -35,9 +35,9 @@ class ScreeningAgent(BaseAgent):
         """
 
         # Retreive any URLS from the text and do scraping 
-        # urls = self.extract_urls(context)
-        # for url in urls:
-        #     self.scrape(url)
+        urls = self.extract_urls(context)
+        for url in urls:
+            self.scrape(url)
 
         response = self.get_4o_mini_model(
             temperature=0.0,

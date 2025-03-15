@@ -13,7 +13,7 @@ import time
 import re
 from urllib.parse import urlparse
 
-from base_agent import BaseAgent
+from .base_agent import BaseAgent
 
 # Global counters for tracking web searches vs API calls
 web_search_count = 0
