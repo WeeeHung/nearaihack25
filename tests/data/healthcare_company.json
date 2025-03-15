@@ -1,0 +1,85 @@
+{
+  "name": "MediTech Innovations",
+  "industry": "Healthcare",
+  "funding_stage": "Series A",
+  "founding_year": 2020,
+  "employees": 42,
+  "founders": [
+    {"name": "Dr. Elena Rodriguez", "role": "CEO", "background": "Former Chief Medical Officer at Mayo Clinic"},
+    {"name": "Robert Chang", "role": "CTO", "background": "MIT Biomedical Engineering PhD"}
+  ],
+  "funding": {
+    "total_raised": "$18M",
+    "latest_round": {
+      "amount": "$15M",
+      "date": "2023-09-15",
+      "investors": ["Health Ventures", "Biomed Capital", "Khosla Ventures"]
+    },
+    "previous_rounds": [
+      {
+        "type": "Seed",
+        "amount": "$3M",
+        "date": "2021-03-22"
+      }
+    ]
+  },
+  "product": {
+    "description": "AI-powered medical imaging diagnostics platform",
+    "key_features": [
+      "Advanced computer vision for radiological analysis",
+      "Integration with hospital PACS systems",
+      "FDA-cleared diagnostic assistance for select conditions"
+    ],
+    "target_market": "Hospitals and radiology clinics"
+  },
+  "financials": {
+    "annual_revenue": "$2.1M",
+    "burn_rate": "$350K/month",
+    "runway": "16 months"
+  },
+  "market": {
+    "total_addressable_market": "$26B",
+    "serviceable_available_market": "$8B",
+    "key_competitors": [
+      "RadiologyAI",
+      "DiagnosticVision",
+      "MedImage Pro"
+    ]
+  },
+  "tech_stack": {
+    "languages": ["Python", "C++"],
+    "frameworks": ["PyTorch", "TensorFlow", "Flask"],
+    "infrastructure": ["Google Cloud", "Kubernetes", "Docker"]
+  },
+  "intellectual_property": {
+    "patents": 2,
+    "pending_patents": 11,
+    "trade_secrets": "Proprietary image segmentation algorithm"
+  },
+  "team": {
+    "leadership": [
+      {"name": "Dr. Elena Rodriguez", "role": "CEO", "experience": "18 years in healthcare"},
+      {"name": "Robert Chang", "role": "CTO", "experience": "12 years in medical AI research"},
+      {"name": "Dr. James Wilson", "role": "CMO", "experience": "20 years in radiology"}
+    ],
+    "key_hires": [
+      {"name": "Dr. Maria Kim", "role": "Director of Clinical Affairs", "previous": "Former Lead Researcher at Johns Hopkins"},
+      {"name": "Steven Park", "role": "VP Product", "previous": "Former Product Lead at Philips Healthcare"}
+    ],
+    "total_headcount": 42,
+    "engineering_ratio": 0.55
+  },
+  "risks": {
+    "technical": ["Algorithm generalization across diverse patient populations", "Data quality from varied imaging equipment"],
+    "market": ["Regulatory barriers to entry", "Hospital procurement cycles"],
+    "financial": ["Lengthy sales cycles", "Reimbursement uncertainty"],
+    "operational": ["Clinical validation timeline", "Regulatory compliance costs"],
+    "regulatory": ["FDA approval process", "HIPAA compliance", "International certification requirements"]
+  },
+  "clinical_validation": {
+    "completed_studies": 3,
+    "ongoing_studies": 5,
+    "published_papers": 7,
+    "key_findings": "93% sensitivity and 91% specificity in initial validation studies"
+  }
+} 
