@@ -52,6 +52,10 @@ try:
 except ImportError:
     HAS_REPORT_AGENT = False
 
+# XTrace API constants
+XTRACE_API_ENDPOINT = "https://api.xtrace.dev/api/rag/query"
+XTRACE_API_KEY = "pR4EPkE9AV5YlLVUlBqax5rN1jWMAPDbaO6Jysxp"  # This should be stored securely
+
 class LegalIssue:
     """Represents a potential legal issue or risk."""
     
@@ -432,6 +436,59 @@ def search_legal_regulations(industry: str, region: str = "US") -> List[Dict[str
         }
     ]
 
+def process_legal_document_xtrace(document_text: str, query: str = None) -> Dict[str, Any]:
+    """
+    Process a legal document using XTrace's RAG API.
+    
+    Args:
+        document_text: The text content of the legal document to analyze
+        query: Optional specific query about the document
+        
+    Returns:
+        Dict containing structured legal analysis from XTrace
+    """
+    if not query:
+        query = "Provide a comprehensive legal analysis of this document, including IP status, regulatory compliance, and potential legal risks."
+    
+    try:
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {XTRACE_API_KEY}"
+        }
+        
+        payload = {
+            "query": query,
+            "documents": [document_text]
+        }
+        
+        response = requests.post(
+            XTRACE_API_ENDPOINT,
+            headers=headers,
+            json=payload
+        )
+        
+        if response.status_code == 200:
+            result = response.json()
+            print(f"XTrace API successfully processed document: {len(document_text)[:100]}...")
+            return result
+        else:
+            print(f"XTrace API returned error: {response.status_code} - {response.text}")
+            # Return a minimal structure if API fails
+            return {
+                "error": True,
+                "message": f"API Error: {response.status_code}",
+                "result": {"ip_status": "Unknown", "regulatory_status": "Unknown"}
+            }
+    
+    except Exception as e:
+        print(f"Error processing document with XTrace API: {str(e)}")
+        # Return a minimal structure on exception
+        return {
+            "error": True,
+            "message": str(e),
+            "result": {"ip_status": "Error", "regulatory_status": "Error"}
+        }
+
 class LegalAgent(BaseAgent):
     """Agent responsible for legal analysis of startups."""
     
@@ -536,6 +593,108 @@ class LegalAgent(BaseAgent):
         Returns:
             List of identified legal issues
         """
+        # Try to use XTrace RAG API for legal document processing first
+        try:
+            company_name = data.get("company_name", "Unknown")
+            market_data = data.get("market_analysis", {})
+            
+            # Prepare document text for XTrace API by combining relevant market data
+            document_text = f"Company: {company_name}\n\n"
+            
+            if "market_size" in market_data:
+                document_text += f"Market Size: {market_data.get('market_size', 'Unknown')}\n\n"
+            
+            if "market_trends" in market_data:
+                document_text += "Market Trends:\n"
+                for trend in market_data.get("market_trends", []):
+                    document_text += f"- {trend}\n"
+                document_text += "\n"
+            
+            if "market_challenges" in market_data:
+                document_text += "Market Challenges:\n"
+                for challenge in market_data.get("market_challenges", []):
+                    document_text += f"- {challenge}\n"
+                document_text += "\n"
+            
+            if "competitors" in market_data:
+                document_text += "Competitors:\n"
+                for competitor in market_data.get("competitors", []):
+                    document_text += f"- {competitor.get('name', 'Unknown')}: {competitor.get('market_share', 0)}% market share\n"
+                document_text += "\n"
+            
+            # Process via XTrace
+            query = f"Provide a comprehensive legal analysis for {company_name}, identifying IP risks, regulatory compliance issues, contract risks, data privacy concerns, and employment legal issues. Include severity scores from 0.0 to 1.0 for each risk."
+            xtrace_analysis = process_legal_document_xtrace(document_text, query)
+            
+            # Check if XTrace analysis was successful and contains useful data
+            if xtrace_analysis and not xtrace_analysis.get("error", False):
+                result = xtrace_analysis.get("result", {})
+                
+                # Try to extract structured data from XTrace result
+                # If the structure doesn't match expectations, we'll fall back to our existing methods
+                if isinstance(result, dict) and ("ip_status" in result or "legal_issues" in result):
+                    legal_issues = []
+                    
+                    # Extract and map XTrace structured data to our LegalIssue objects
+                    # Attempt to extract IP issues
+                    if "ip_status" in result:
+                        ip_severity = 0.8 if result["ip_status"].lower() != "clear" else 0.3
+                        ip_issue = LegalIssue(
+                            category="Intellectual Property",
+                            description=f"IP Status: {result['ip_status']} - {result.get('ip_details', 'No additional details provided.')}",
+                            severity=ip_severity,
+                            recommendations=result.get("ip_recommendations", ["Conduct comprehensive IP audit", "Consult with IP attorney"]),
+                            references=[]
+                        )
+                        legal_issues.append(ip_issue)
+                    
+                    # Try to extract any other legal issues in result
+                    if "legal_issues" in result and isinstance(result["legal_issues"], list):
+                        for issue in result["legal_issues"]:
+                            if isinstance(issue, dict):
+                                category = issue.get("category", "Miscellaneous")
+                                description = issue.get("description", "Legal issue identified by XTrace")
+                                severity = float(issue.get("severity", 0.5))
+                                recommendations = issue.get("recommendations", ["Consult legal counsel"])
+                                
+                                legal_issues.append(LegalIssue(
+                                    category=category,
+                                    description=description,
+                                    severity=severity,
+                                    recommendations=recommendations,
+                                    references=[]
+                                ))
+                    
+                    # If we successfully extracted legal issues from XTrace, use them
+                    if legal_issues:
+                        print("Using XTrace API analysis results")
+                        # Enhance with patent and regulation data
+                        industry = self._determine_industry(market_data)
+                        patent_results = search_patents(company_name, industry)
+                        regulation_results = search_legal_regulations(industry)
+                        
+                        # Add patent references to IP issues
+                        for issue in legal_issues:
+                            if "intellectual property" in issue.category.lower():
+                                for patent in patent_results:
+                                    issue.references.append({
+                                        "title": patent.get("title", "Related Patent"),
+                                        "url": patent.get("url", "https://patents.google.com/")
+                                    })
+                            elif "regulatory" in issue.category.lower() or "compliance" in issue.category.lower():
+                                for reg in regulation_results:
+                                    issue.references.append({
+                                        "title": reg.get("title", "Relevant Regulation"),
+                                        "url": reg.get("url", "https://www.regulations.gov/")
+                                    })
+                        
+                        return legal_issues
+        
+        except Exception as e:
+            print(f"XTrace integration encountered an error: {e}")
+            print("Falling back to standard analysis methods")
+        
+        # Continue with the existing implementation if XTrace processing didn't work
         # Try to use LLM for analysis, but be prepared to fall back to random generation
         try:
             # Get 4o mini model if available
@@ -546,18 +705,7 @@ class LegalAgent(BaseAgent):
             market_data = data.get("market_analysis", {})
             
             # Determine industry from market data
-            industry = "technology"  # Default
-            market_trends = market_data.get("market_trends", [])
-            for trend in market_trends:
-                if "healthcare" in trend.lower() or "medical" in trend.lower():
-                    industry = "healthcare"
-                    break
-                elif "finance" in trend.lower() or "banking" in trend.lower():
-                    industry = "fintech"
-                    break
-                elif "manufacturing" in trend.lower():
-                    industry = "manufacturing"
-                    break
+            industry = self._determine_industry(market_data)
             
             # Search for patents related to the company
             patent_results = search_patents(company_name, industry)
@@ -944,7 +1092,6 @@ Respond in this JSON format:
                     severity = float(issue['severity'])
                     severity_level = "High" if severity > 0.7 else "Medium" if severity > 0.4 else "Low"
                     issues_summary += f"  - {issue['description']} (Severity: {issue['severity']}, {severity_level})\n"
-                    issues_summary += f"    Recommendations: {', '.join(issue['recommendations'])}\n"
                     
                     # Add reference information
                     if 'references' in issue and issue['references']:
@@ -1060,6 +1207,30 @@ Look, I'm not going to sugar-coat this. {report['company_name']} has some signif
             f.write(md_content)
         
         return output_path
+
+    def _determine_industry(self, market_data: Dict[str, Any]) -> str:
+        """
+        Determine industry from market data.
+        
+        Args:
+            market_data: Market analysis data
+            
+        Returns:
+            Industry name as string
+        """
+        industry = "technology"  # Default
+        market_trends = market_data.get("market_trends", [])
+        for trend in market_trends:
+            if "healthcare" in trend.lower() or "medical" in trend.lower():
+                industry = "healthcare"
+                break
+            elif "finance" in trend.lower() or "banking" in trend.lower():
+                industry = "fintech"
+                break
+            elif "manufacturing" in trend.lower():
+                industry = "manufacturing"
+                break
+        return industry
 
 class LegalAnalysisNode(Node):
     """Node for executing legal analysis"""
