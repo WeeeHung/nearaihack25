@@ -2,6 +2,7 @@ import openai
 import json
 from .base_agent import BaseAgent
 from nearai.agents.environment import Environment
+
 class CompetitorsAgent(BaseAgent):
     def __init__(self, env:Environment, name="CompetitorsAgent"):
         """
@@ -13,6 +14,7 @@ class CompetitorsAgent(BaseAgent):
         super().__init__(env, name=name)
         self.client = openai.OpenAI(api_key=self.api_keys["OPENAI_API_KEY"])
         self.env.add_system_log("CompetitorsAgent initialized")
+        self.max_retries = 3  # Maximum number of retries for JSON parsing
 
     def prep(self, shared):
         """
@@ -60,7 +62,7 @@ class CompetitorsAgent(BaseAgent):
         response = self.client.chat.completions.create(
             model="gpt-4o-search-preview",
             web_search_options={},
-            messages=[{"role": "user", "content": search_prompt}],
+        messages=[{"role": "user", "content": search_prompt}],
         )
         
         competitors_data = response.choices[0].message.content
@@ -82,16 +84,50 @@ class CompetitorsAgent(BaseAgent):
             {competitors_data}
             Extract the names of ALL competitors mentioned (both direct and indirect).
             Format the response as a JSON object with a single key "competitors" containing an array of strings with ONLY the company names.
+            Your response must be valid JSON enclosed in ```json code blocks.
         """
         
-        gptmodel = self.get_4o_mini_model(temperature=0.7)
-        response = gptmodel(extraction_prompt)
-
-        response = json.loads(response.split("```json")[1].split("```")[0])
-
-        print(response)
-
-        competitor_names = response.get("competitors", [])
+        for attempt in range(self.max_retries):
+            try:
+                gptmodel = self.get_gpt_4o_mini_model(temperature=0.7)
+                response = gptmodel(extraction_prompt)
+                
+                # Extract JSON content
+                if "```json" in response:
+                    json_content = response.split("```json")[1].split("```")[0].strip()
+                else:
+                    json_content = response
+                
+                parsed_response = json.loads(json_content)
+                
+                # Validate expected keys exist
+                if "competitors" not in parsed_response:
+                    raise KeyError("Missing 'competitors' key in response")
+                
+                competitor_names = parsed_response.get("competitors", [])
+                
+                if not competitor_names or not isinstance(competitor_names, list):
+                    self.env.add_system_log(f"No valid competitor names found, retrying ({attempt+1}/{self.max_retries})")
+                    raise ValueError("Invalid competitor list format")
+                
+                # If we reach here, JSON is valid with expected structure
+                break
+                
+            except (json.JSONDecodeError, KeyError, ValueError, IndexError) as e:
+                self.env.add_system_log(f"JSON parsing error in competitor extraction: {str(e)}")
+                if attempt == self.max_retries - 1:
+                    self.env.add_system_log("Maximum retries reached, using fallback approach")
+                    # Fallback: Ask the model to extract just the names directly
+                    fallback_prompt = f"""
+                        The previous extraction failed. From the following competitor data:
+                        {competitors_data}
+                        
+                        Please list ONLY the company names of competitors, one per line.
+                        Don't include any other information or formatting.
+                    """
+                    fallback_response = self.get_gpt_4o_mini_model(temperature=0.3)(fallback_prompt)
+                    competitor_names = [name.strip() for name in fallback_response.split('\n') if name.strip()]
+                    break
         
         result = {
             "direct_competitors": [],
@@ -99,16 +135,155 @@ class CompetitorsAgent(BaseAgent):
         }
         
         for name in competitor_names:
-            print("getting competitor details for:", name)
+            self.env.add_system_log(f"Getting competitor details for: {name}")
             competitor_info = self._get_competitor_details(name, company_info)
-            print("done getting competitor details for:", name)
             if competitor_info:
-                category = "direct_competitors" if competitor_info.get("is_direct", False) else "indirect_competitors"
-                result[category].append(competitor_info)
+                try:
+                    # Process competitor info
+                    processed_info = self._process_competitor_json(competitor_info, name)
+                    if processed_info:
+                        category = "direct_competitors" if processed_info.get("is_direct", False) else "indirect_competitors"
+                        result[category].append(processed_info)
+                except Exception as e:
+                    self.env.add_system_log(f"Error processing competitor info for {name}: {str(e)}")
         
         return result
     
+    def _process_competitor_json(self, competitor_json, competitor_name):
+        """
+        Process and validate competitor JSON data
+        
+        Args:
+            competitor_json (str): JSON string with competitor data
+            competitor_name (str): Name of the competitor
+            
+        Returns:
+            dict: Processed and validated competitor data
+        """
+        for attempt in range(self.max_retries):
+            try:
+                # Extract JSON content
+                if "```json" in competitor_json:
+                    json_content = competitor_json.split("```json")[1].split("```")[0].strip()
+                else:
+                    json_content = competitor_json
+                
+                data = json.loads(json_content)
+                
+                # Validate required keys
+                required_sections = ["companyProfile", "description", "comparisons", "is_direct"]
+                for section in required_sections:
+                    if section not in data:
+                        raise KeyError(f"Missing required section: {section}")
+                
+                if "similarities" not in data["comparisons"] or "differences" not in data["comparisons"]:
+                    raise KeyError("Missing similarities or differences in comparisons")
+                
+                # Valid JSON with all required keys
+                return data
+                
+            except (json.JSONDecodeError, KeyError, IndexError) as e:
+                self.env.add_system_log(f"Error processing JSON for {competitor_name}: {str(e)}, attempt {attempt+1}/{self.max_retries}")
+                
+                if attempt == self.max_retries - 1:
+                    # Create standardized structure if all retries fail
+                    self.env.add_system_log(f"Creating fallback structure for {competitor_name}")
+                    return self._create_fallback_competitor_structure(competitor_name, competitor_json)
+        
+        return None
+    
+    def _create_fallback_competitor_structure(self, competitor_name, raw_data):
+        """
+        Create a fallback structure when JSON parsing fails
+        
+        Args:
+            competitor_name (str): Name of the competitor
+            raw_data (str): Raw text data about the competitor
+            
+        Returns:
+            dict: Standardized competitor structure
+        """
+        fallback_prompt = f"""
+            I need to structure information about competitor "{competitor_name}" into a specific JSON format.
+            The previous parsing attempts failed. 
+            
+            Here's the raw information I have:
+            {raw_data}
+            
+            Please create a clean, valid JSON object with this exact structure:
+            {{
+                "companyProfile": {{
+                    "name": "{competitor_name}",
+                    "yearFounded": "YEAR or Unknown if not available",
+                    "headquarters": "LOCATION or Unknown if not available",
+                    "website": "URL or Unknown if not available",
+                    "fundingStage": "STAGE or Unknown if not available",
+                    "lastFundedAmount": "AMOUNT or Unknown if not available",
+                    "totalFundsRaised": "AMOUNT or Unknown if not available",
+                    "lastValuation": "AMOUNT or Unknown if not available",
+                    "investors": ["Unknown if not available"]
+                }},
+                "description": "Brief description of the company",
+                "comparisons": {{
+                    "similarities": ["At least one similarity"],
+                    "differences": ["At least one difference"]
+                }},
+                "is_direct": true or false
+            }}
+            
+            Your response must be ONLY valid JSON without any code block markers or other text.
+        """
+        
+        try:
+            gptmodel = self.get_gpt_4o_mini_model(temperature=0.5)
+            fallback_response = gptmodel(fallback_prompt)
+            
+            # Handle potential JSON formatting
+            if "```json" in fallback_response:
+                json_content = fallback_response.split("```json")[1].split("```")[0].strip()
+            elif "```" in fallback_response:
+                json_content = fallback_response.split("```")[1].strip()
+            else:
+                json_content = fallback_response.strip()
+            
+            parsed_fallback = json.loads(json_content)
+            self.env.add_system_log(f"Successfully created fallback structure for {competitor_name}")
+            return parsed_fallback
+            
+        except Exception as e:
+            self.env.add_system_log(f"Fallback creation failed for {competitor_name}: {str(e)}")
+            # Last resort: return minimal valid structure
+            return {
+                "companyProfile": {
+                    "name": competitor_name,
+                    "yearFounded": "Unknown",
+                    "headquarters": "Unknown",
+                    "website": "Unknown",
+                    "fundingStage": "Unknown",
+                    "lastFundedAmount": "Unknown",
+                    "totalFundsRaised": "Unknown",
+                    "lastValuation": "Unknown",
+                    "investors": ["Unknown"]
+                },
+                "description": f"Information about {competitor_name} could not be properly structured.",
+                "comparisons": {
+                    "similarities": ["Information unavailable"],
+                    "differences": ["Information unavailable"]
+                },
+                "is_direct": False
+            }
+    
     def _get_competitor_details(self, competitor_name, original_company_info):
+        """
+        Get detailed information about a specific competitor
+        
+        Args:
+            competitor_name (str): Name of the competitor
+            original_company_info (str): Information about the original company
+            
+        Returns:
+            str: JSON string with competitor details
+        """
         # STEP 1: Search for information using web search
         search_prompt = f"""
             Search for detailed information about {competitor_name} and compare it with this company:
@@ -130,56 +305,60 @@ class CompetitorsAgent(BaseAgent):
             Please provide comprehensive information about all these aspects.
         """
         
-        # First call: With web search enabled
-        search_response = self.client.chat.completions.create(
-            model="gpt-4o-search-preview",
-            web_search_options={},
-            messages=[{"role": "user", "content": search_prompt}],
-        )
-        
-        # Get the detailed information from the search
-        detailed_info = search_response.choices[0].message.content
-        
-        # STEP 2: Parse the information into structured JSON
-        parse_prompt = f"""
-            Based on this detailed information about {competitor_name}:
+        try:
+            # First call: With web search enabled
+            search_response = self.client.chat.completions.create(
+                model="gpt-4o-search-preview",
+                web_search_options={},
+                messages=[{"role": "user", "content": search_prompt}],
+            )
             
-            {detailed_info}
+            # Get the detailed information from the search
+            detailed_info = search_response.choices[0].message.content
             
-            Create a structured comparison with the original company:
-            {original_company_info}
+            # STEP 2: Parse the information into structured JSON
+            parse_prompt = f"""
+                Based on this detailed information about {competitor_name}:
+                
+                {detailed_info}
+                
+                Create a structured comparison with the original company:
+                {original_company_info}
+                
+                Return ONLY a JSON object with EXACTLY this structure:
+                {{
+                    "companyProfile": {{
+                        "name": "{competitor_name}",
+                        "yearFounded": "YEAR",
+                        "headquarters": "LOCATION",
+                        "website": "URL",
+                        "fundingStage": "STAGE",
+                        "lastFundedAmount": "AMOUNT",
+                        "totalFundsRaised": "AMOUNT",
+                        "lastValuation": "AMOUNT",
+                        "investors": ["INVESTOR1", "INVESTOR2"]
+                    }},
+                    "description": "DESCRIPTION",
+                    "comparisons": {{
+                        "similarities": ["SIMILARITY1", "SIMILARITY2", "SIMILARITY3"],
+                        "differences": ["DIFFERENCE1", "DIFFERENCE2", "DIFFERENCE3"]
+                    }},
+                    "is_direct": true/false
+                }}
+                
+                Ensure you include at least 3 specific similarities and 3 specific differences.
+                The "is_direct" field should be true if {competitor_name} competes directly with the original company.
+                Your response must be valid JSON enclosed in ```json code blocks.
+            """
             
-            Return ONLY a JSON object with EXACTLY this structure:
-            {{
-                "companyProfile": {{
-                    "name": "{competitor_name}",
-                    "yearFounded": "YEAR",
-                    "headquarters": "LOCATION",
-                    "website": "URL",
-                    "fundingStage": "STAGE",
-                    "lastFundedAmount": "AMOUNT",
-                    "totalFundsRaised": "AMOUNT",
-                    "lastValuation": "AMOUNT",
-                    "investors": ["INVESTOR1", "INVESTOR2"]
-                }},
-                "description": "DESCRIPTION",
-                "comparisons": {{
-                    "similarities": ["SIMILARITY1", "SIMILARITY2", "SIMILARITY3"],
-                    "differences": ["DIFFERENCE1", "DIFFERENCE2", "DIFFERENCE3"]
-                }},
-                "is_direct": true/false
-            }}
+            gptmodel = self.get_gpt_4o_mini_model(temperature=0.7)
+            parse_response = gptmodel(parse_prompt)
             
-            Ensure you include at least 3 specific similarities and 3 specific differences.
-            The "is_direct" field should be true if {competitor_name} competes directly with the original company.
-        """
-        gptmodel = self.get_4o_mini_model(temperature=0.7)
-        # Second call: With JSON response format (no web search)
-        parse_response = gptmodel(parse_prompt)
-        
-        # Parse the structured JSON response
-        competitor_details = json.loads(parse_response.split("```json")[1].split("```")[0])
-        return parse_response
+            return parse_response
+            
+        except Exception as e:
+            self.env.add_system_log(f"Error getting competitor details for {competitor_name}: {str(e)}")
+            return None
     
     def post(self, shared, prep_res, exec_res):
         """
