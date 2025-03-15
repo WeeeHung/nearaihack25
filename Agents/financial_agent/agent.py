@@ -93,6 +93,7 @@ class FinancialAgent(BaseAgent):
         super().__init__("financial")
         self.screening_agent = screening_agent
         self.market_data = market_data
+        self.last_analysis = None
     
     def execute(self, company_name: str) -> Dict[str, Any]:
         """
@@ -114,10 +115,22 @@ class FinancialAgent(BaseAgent):
             # Generate a report from the analysis
             report = self._generate_report(analysis_result, company_name)
             
+            # Store the analysis for later retrieval
+            self.last_analysis = report
+            
             return report
             
         except Exception as e:
             raise RuntimeError(f"Failed to analyze financials for {company_name}: {str(e)}")
+    
+    def get_last_analysis(self) -> Optional[Dict[str, Any]]:
+        """
+        Get the most recent financial analysis results.
+        
+        Returns:
+            The last financial analysis or None if no analysis has been performed
+        """
+        return self.last_analysis
     
     def _get_financial_data(self, company_name: str) -> Dict[str, Any]:
         """
@@ -218,10 +231,10 @@ class FinancialAgent(BaseAgent):
         market_analysis = financial_data.get("market_analysis", {})
         
         # Extract basic metrics with defaults for missing data
-        revenue = financial.get("revenue", 0.0)
-        growth_rate = financial.get("growth_rate", 0.0)
+        revenue = financial.get("revenue", 1.0)  # Default to 1.0 to avoid division by zero
+        growth_rate = financial.get("growth_rate", 10.0)  # Default to 10%
         funding_stage_str = financial.get("funding_stage", "Seed")
-        total_funding = financial.get("total_funding", 0.0)
+        total_funding = financial.get("total_funding", 1.0)  # Default to 1.0M
         
         # Use market data to enhance financial analysis if available
         market_size_str = market_analysis.get("market_size", "")
@@ -250,14 +263,14 @@ class FinancialAgent(BaseAgent):
         
         # Generate derived metrics
         burn_rate = revenue * random.uniform(0.05, 0.3)  # 5-30% of revenue as monthly burn
-        runway_months = int((total_funding) / burn_rate) if burn_rate > 0 else 0
+        runway_months = int((total_funding) / max(burn_rate, 0.001))  # Avoid division by zero
         gross_margin = random.uniform(0.4, 0.8) if revenue > 0 else 0.0
         business_model = random.choice(list(BusinessModel))
         
         # SaaS-specific metrics
         ltv = random.uniform(1000, 50000)
         cac = ltv / random.uniform(2, 5)  # Healthy LTV/CAC between 2-5
-        ltv_cac_ratio = ltv / cac if cac > 0 else 0.0
+        ltv_cac_ratio = ltv / max(cac, 0.001)  # Avoid division by zero
         arpu = random.uniform(50, 500)
         mrr = revenue / 12.0
         churn_rate = random.uniform(0.01, 0.05)  # 1-5% monthly churn
@@ -293,8 +306,8 @@ class FinancialAgent(BaseAgent):
                 "improvement_potential": random.uniform(0.1, 0.4)
             },
             "payback_period": {
-                "months": int(cac / (arpu * gross_margin)) if (arpu * gross_margin) > 0 else 0,
-                "is_healthy": True if cac / (arpu * gross_margin) < 12 else False
+                "months": int(cac / max(arpu * gross_margin, 0.001)),  # Avoid division by zero
+                "is_healthy": True if cac / max(arpu * gross_margin, 0.001) < 12 else False  # Avoid division by zero
             }
         }
         
