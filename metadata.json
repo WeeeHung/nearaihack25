@@ -1,6 +1,6 @@
 {
     "name": "due_diligence_agent",
-    "version": "0.1.0",
+    "version": "0.1.5",
     "namespace": "turing_rhmor.near",
     "description": "Automated multi-agent system for conducting due diligence analysis in 10 minutes.",
     "category": "agent",
@@ -12,10 +12,17 @@
                 "model_provider": "fireworks",
                 "model_temperature": 1.0,
                 "model_max_tokens": 16384
+            },
+            "welcome": {
+            "description": "DD is your personal AI due diligence expert, making it effortless to 10x your due diligence process",
+            "title": "DueDiligence"
             }
         },
+        "display_name": "DD",
+        "icon": "https://img.freepik.com/premium-vector/due-diligence-icon-vector-image-can-be-used-business-audit_120816-247268.jpg",
         "env_vars": {
-            "OPENAI_API_KEY": "YOUR_OPEN_API_KEY"
+            "OPENAI_API_KEY": "YOUR_OPEN_API_KEY",
+            "DEBUG": "true"
         }
     },
     "show_entry": true

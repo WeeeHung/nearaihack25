@@ -1,27 +1,21 @@
-import openai
-import requests
-
-from base_agent import BaseAgent
+from .base_agent import BaseAgent
+from nearai.agents.environment import Environment
 
 class FinancialsAgent(BaseAgent):
-    def __init__(self, name="FinancialsAgent"):
+    def __init__(self, env:Environment, name="FinancialsAgent"):
         """
         Initialize the financials agent with specific functionality.
         
         Args:
+            env (Environment): Environment of the agent
             name (str): Name of the agent
         """
-        super().__init__(name)
-        
-        # Load API keys from environment variables
-        self._load_api_keys()
-        
-        # Initialize OpenAI client
-        self.client = openai.Client(api_key=self.api_keys.get("OPENAI_API_KEY"))
+        super().__init__(env, name=name)
+        self.env.add_system_log("FinancialsAgent initialized")
     
     def prep(self, shared):
         """
-        Prepare data for execution. Extract the company information from shared store.
+        Prepare data for execution. Extra   ct the company information from shared store.
         
         Args:
             shared (dict): Shared data store
@@ -31,7 +25,7 @@ class FinancialsAgent(BaseAgent):
         """
         return shared.get("company_info", "")
     
-    def exec(self, company_info):
+    def run(self, company_info):
         """
         Execute a search for financials using the OpenAI API.
         
@@ -41,6 +35,7 @@ class FinancialsAgent(BaseAgent):
         Returns:
             dict: Structured data about financials
         """
+        self.env.add_system_log("Running FinancialsAgent")
         search_prompt = f"""
             {company_info}
 
@@ -61,46 +56,61 @@ class FinancialsAgent(BaseAgent):
             - Employees
 
             Put the information into a structured JSON format following the following template:
-            return_value = {{
-                "revenue_model": {
+            return_value = {{{{
+                "revenue_model": {{{{
                     "business_model": "",
                     "pricing": "",
                     "revenue_streams": []
-                },
-                "historical_financials": {  
-                    "revenue": {
+                }}}},
+                "historical_financials": {{{{  
+                    "revenue": {{{{
                         "year_1": "",
                         "year_2": "",
                         "year_3": ""
-                    },
-                    "profits": {
+                    }}}},
+                    "profits": {{{{
                         "year_1": "",
                         "year_2": "",
                         "year_3": ""
-                    },
-                    "expenses": {
+                    }}}},
+                    "expenses": {{{{
                         "cost_of_goods_sold": "",
                         "operating_expenses": ""
-                    }
-                },
-                "cap table": {
-                    "founders": {
-                        "founder_name": "",
-                        "background": "",
-                        "number of shares": "",
-                    },
-                    "key_team_members": [
-                        {
+                    }}}}
+                }}}},
+                "cap_table": {{{{
+                    "founders": [
+                        {{{{
+                            "name": "",
+                            "background": "",
+                            "shares": ""
+                        }}}}
+                    ],
+                    "investors": [
+                        {{{{
+                            "name": "",
+                            "investment_amount": "",
+                            "shares": ""
+                        }}}}
+                    ],
+                    "advisors": [
+                        {{{{
                             "name": "",
                             "role": "",
-                            "number of shares": "",
-                        }
+                            "shares": ""
+                        }}}}
                     ],
-                },
-            }}
-
+                    "employees": [
+                        {{{{
+                            "name": "",
+                            "role": "",
+                            "shares": ""
+                        }}}}
+                    ]
+                }}}}
+            }}}}
         """
-        gptmodel = self.get_4omini_model(temperature=0.7)
+        gptmodel = self.get_4o_mini_model(temperature=0.7)
         response = gptmodel(search_prompt)
         
         return response

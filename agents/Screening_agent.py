@@ -16,7 +16,7 @@ class ScreeningAgent(BaseAgent):
     def run(self, texts: List[str]) -> Dict[str, Any]:
         """Process input texts and extract structured information."""
         
-        # self.env.add_system_log("Running ScreeningAgent")
+        self.env.add_system_log("Running ScreeningAgent")
         # Combine texts into single context
         context = "\n\n".join(texts)
         

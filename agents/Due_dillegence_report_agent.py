@@ -80,6 +80,8 @@ class DueDiligenceReportAgent(BaseAgent):
         9. Final Recommendation
 
         Format the report in clean Markdown, with proper sections and subsections.
+        It should be 100% factual and based ONLY on the information provided. 
+        It should be like a professional report.
         """
         
         report = llm(prompt)
@@ -96,10 +98,14 @@ class DueDiligenceReportAgent(BaseAgent):
             Dict: Combined data structure
         """
         combined_data = {}
-        
-        # Merge all JSON data, with later items taking precedence for duplicate keys
         for data in json_data_list:
-            self._deep_merge(combined_data, data)
+            if isinstance(data, dict):
+                self._deep_merge(combined_data, data)
+            else:
+                # Handle non-dict data appropriately, maybe by adding to a special key
+                if 'non_dict_data' not in combined_data:
+                    combined_data['non_dict_data'] = []
+                combined_data['non_dict_data'].append(data)
             
         return combined_data
     
@@ -111,6 +117,7 @@ class DueDiligenceReportAgent(BaseAgent):
             target: Target dictionary to merge into
             source: Source dictionary to merge from
         """
+
         for key, value in source.items():
             if key in target and isinstance(target[key], dict) and isinstance(value, dict):
                 self._deep_merge(target[key], value)
