@@ -1,6 +1,6 @@
 {
     "name": "due_diligence_agent",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "namespace": "turing_rhmor.near",
     "description": "Automated multi-agent system for conducting due diligence analysis in 10 minutes.",
     "category": "agent",
