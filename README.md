@@ -39,7 +39,7 @@ DiligenceAI addresses these challenges by automating information gathering and a
 
 DiligenceAI follows a modular architecture based on the PocketFlow framework:
 
-![Alt text](/relative/path/to/img.jpg?raw=true "Optional Title")
+![Alt text]([/relative/path/to/img.jpg?raw=true](https://github.com/WeeeHung/nearaihack25/blob/main/Arch%20Final%20Diagram.png) "Arch Diagram")
 
 Key architectural features:
 - **Agent Orchestration**: Central coordination of specialized agents
