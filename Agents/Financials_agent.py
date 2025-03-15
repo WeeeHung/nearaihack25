@@ -67,7 +67,7 @@ class FinancialsAgent(BaseAgent):
                     "pricing": "",
                     "revenue_streams": []
                 },
-                "historical_financials": {
+                "historical_financials": {  
                     "revenue": {
                         "year_1": "",
                         "year_2": "",
