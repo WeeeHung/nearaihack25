@@ -155,61 +155,61 @@ output_format_screening = {
     }
 
   
-######################## Layer 2.1 : Market Analysis #########################
+# ######################## Layer 2.1 : Market Analysis #########################
 
-input_format = output_format_screening
-# outputs 
-output_format_market_analysis = {}
+# input_format = output_format_screening
+# # outputs 
+# output_format_market_analysis = {}
 
-######################## Layer 2.2 : Team Evaluation #########################
+# ######################## Layer 2.2 : Team Evaluation #########################
 
-input_format = output_format_screening
-output_format_team_evaluation = {}
+# input_format = output_format_screening
+# output_format_team_evaluation = {}
       
 
-######################## Layer 3.1 : Financial #########################
+# ######################## Layer 3.1 : Financial #########################
 
-input_format = output_format_market_analysis 
-+ financial_json
-output_format_financial = markdown
-
-
-######################## Layer 3.2 : Tech Deep Dive #########################
-
-input_format = output_format_market_analysis 
-+ output_format_team_evaluation 
-+ tech_deep_dive_json
-output_format_tech_deep_dive = markdown
+# input_format = output_format_market_analysis 
+# + financial_json
+# output_format_financial = markdown
 
 
-######################## Layer 3.3 : Legal #########################
+# ######################## Layer 3.2 : Tech Deep Dive #########################
 
-input_format = output_format_market_analysis 
-+ legal_json
-output_format_legal = markdown
-
-
-######################## Layer 3.4 : Risk #########################
-
-input_format = output_format_market_analysis 
-+ output_format_team_evaluation
-output_format_risk = markdown
+# input_format = output_format_market_analysis 
+# + output_format_team_evaluation 
+# + tech_deep_dive_json
+# output_format_tech_deep_dive = markdown
 
 
-######################## Layer 3.5 : Competition #########################
+# ######################## Layer 3.3 : Legal #########################
 
-input_format = output_format_market_analysis 
-+ competition_json
-output_format_competition = markdown
+# input_format = output_format_market_analysis 
+# + legal_json
+# output_format_legal = markdown
 
-######################## Layer 4 : Final Output #########################
 
-input_format = output_format_market_analysis 
-+ output_format_team_evaluation 
-+ output_format_financial 
-+ output_format_tech_deep_dive 
-+ output_format_legal 
-+ output_format_competition 
-+ output_format_risk
+# ######################## Layer 3.4 : Risk #########################
 
-output_format_final = markdown
+# input_format = output_format_market_analysis 
+# + output_format_team_evaluation
+# output_format_risk = markdown
+
+
+# ######################## Layer 3.5 : Competition #########################
+
+# input_format = output_format_market_analysis 
+# + competition_json
+# output_format_competition = markdown
+
+# ######################## Layer 4 : Final Output #########################
+
+# input_format = output_format_market_analysis 
+# + output_format_team_evaluation 
+# + output_format_financial 
+# + output_format_tech_deep_dive 
+# + output_format_legal 
+# + output_format_competition 
+# + output_format_risk
+
+# output_format_final = markdown

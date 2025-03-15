@@ -1,6 +1,9 @@
 /venv
 /nearai
 
+# pycache
+__pycache__
+
 # Environment variables
 .env
 .cursorrules
