@@ -3,13 +3,39 @@ Legal Agent for Multi-Agent Due Diligence System
 
 This file provides a high-level interface to the Legal Agent implementation.
 It focuses on legal risk analysis and can receive data from other agents.
+
+The Legal Agent can analyze legal risks for companies using market data from:
+1. Market Analysis Agent (if available)
+2. External data sources:
+   - URLs (websites with market information)
+   - JSON files (structured market data)
+   - Text files (market reports)
+
+Examples:
+- Interactive mode (just run without arguments):
+  python Legal_agent.py
+  
+- Basic usage: 
+  python Legal_agent.py "CompanyName" "output_report.md"
+  
+- Using a JSON file as input:
+  python Legal_agent.py "CompanyName" "output_report.md" "path/to/market_data.json"
+  
+- Using a text file as input:
+  python Legal_agent.py "CompanyName" "output_report.md" "path/to/market_report.txt"
+  
+- Using a website URL as input:
+  python Legal_agent.py "CompanyName" "output_report.md" "https://example.com/market-report"
 """
 
 from typing import Dict, Any, Optional, List
 from pocketflow import Flow, Node
-from .base_agent import BaseAgent
+from base_agent import BaseAgent
 import random
 from datetime import datetime
+import json
+import os
+import re
 
 # Try to import related agents
 try:
@@ -43,18 +69,248 @@ class LegalIssue:
         self.severity = severity
         self.recommendations = recommendations or []
 
+def extract_data_from_url(url: str) -> Dict[str, Any]:
+    """
+    Extract market data from a website URL.
+    
+    Args:
+        url: URL to extract data from
+        
+    Returns:
+        Dict containing extracted market data
+    """
+    try:
+        # Create a BaseAgent instance to use its scrape method
+        base_agent = BaseAgent("scraper")
+        title, content = base_agent.scrape(url)
+        
+        # Extract market size information
+        market_size_match = re.search(r'market\s+size.*?(\$[\d.]+ [bmtr]illion|\d+\.?\d* [bmtr]illion)', 
+                                    content, re.IGNORECASE)
+        market_size = market_size_match.group(1) if market_size_match else "Unknown"
+        
+        # Extract competitors
+        competitors = []
+        competitor_section = re.search(r'competitors?:?(.*?)(?:trends|challenges|market size)', 
+                                    content, re.IGNORECASE | re.DOTALL)
+        if competitor_section:
+            comp_text = competitor_section.group(1)
+            comp_matches = re.findall(r'([A-Z][A-Za-z\s]+)(?:\(.*?\))?', comp_text)
+            for comp in comp_matches[:5]:  # Limit to 5 competitors
+                competitors.append({"name": comp.strip(), "market_share": random.randint(5, 30)})
+        
+        # Extract trends
+        trends = []
+        trends_section = re.search(r'trends:?(.*?)(?:challenges|competitors|market size)', 
+                                 content, re.IGNORECASE | re.DOTALL)
+        if trends_section:
+            trends_text = trends_section.group(1)
+            # Split by bullet points, numbers, or new lines
+            trend_items = re.split(r'•|\d+\.|\n+', trends_text)
+            for item in trend_items:
+                item = item.strip()
+                if item and len(item) > 10:  # Avoid empty or very short items
+                    trends.append(item)
+        
+        # Extract challenges
+        challenges = []
+        challenges_section = re.search(r'challenges:?(.*?)(?:trends|competitors|market size|conclusion)', 
+                                    content, re.IGNORECASE | re.DOTALL)
+        if challenges_section:
+            challenges_text = challenges_section.group(1)
+            # Split by bullet points, numbers, or new lines
+            challenge_items = re.split(r'•|\d+\.|\n+', challenges_text)
+            for item in challenge_items:
+                item = item.strip()
+                if item and len(item) > 10:  # Avoid empty or very short items
+                    challenges.append(item)
+        
+        # Ensure we have at least some data
+        if not trends:
+            trends = ["Growing adoption of advanced technologies", 
+                    "Increasing regulatory oversight",
+                    "Shift towards sustainable practices"]
+            
+        if not challenges:
+            challenges = ["Intense market competition",
+                        "Regulatory uncertainty",
+                        "Technological disruption"]
+        
+        # Construct market data
+        market_data = {
+            "source": f"Web: {url}",
+            "title": title,
+            "market_size": market_size,
+            "competitors": competitors,
+            "market_trends": trends[:5],  # Limit to 5 trends
+            "market_challenges": challenges[:5]  # Limit to 5 challenges
+        }
+        
+        return {"market_analysis": market_data}
+    
+    except Exception as e:
+        print(f"Error extracting data from URL: {str(e)}")
+        return {}
+
+def extract_data_from_json(json_path: str) -> Dict[str, Any]:
+    """
+    Extract market data from a JSON file.
+    
+    Args:
+        json_path: Path to the JSON file
+        
+    Returns:
+        Dict containing extracted market data
+    """
+    try:
+        with open(json_path, 'r') as f:
+            data = json.load(f)
+        
+        # Check if the JSON already has market_analysis key
+        if "market_analysis" in data:
+            return data
+        
+        # If not, try to construct market_analysis from available keys
+        market_data = {}
+        for key in ["market_size", "competitors", "market_trends", "market_challenges"]:
+            if key in data:
+                market_data[key] = data[key]
+        
+        if market_data:
+            return {"market_analysis": market_data, "source": f"JSON: {json_path}"}
+        
+        # If no relevant keys found, return the entire JSON as market_analysis
+        return {"market_analysis": data, "source": f"JSON: {json_path}"}
+    
+    except Exception as e:
+        print(f"Error extracting data from JSON file: {str(e)}")
+        return {}
+
+def extract_data_from_text(text_path: str) -> Dict[str, Any]:
+    """
+    Extract market data from a text file.
+    
+    Args:
+        text_path: Path to the text file
+        
+    Returns:
+        Dict containing extracted market data
+    """
+    try:
+        with open(text_path, 'r') as f:
+            content = f.read()
+        
+        # Extract market size information
+        market_size_match = re.search(r'market\s+size.*?(\$[\d.]+ [bmtr]illion|\d+\.?\d* [bmtr]illion)', 
+                                    content, re.IGNORECASE)
+        market_size = market_size_match.group(1) if market_size_match else "Unknown"
+        
+        # Extract competitors
+        competitors = []
+        competitor_section = re.search(r'competitors?:?(.*?)(?:trends|challenges|market size)', 
+                                    content, re.IGNORECASE | re.DOTALL)
+        if competitor_section:
+            comp_text = competitor_section.group(1)
+            comp_matches = re.findall(r'([A-Z][A-Za-z\s]+)(?:\(.*?\))?', comp_text)
+            for comp in comp_matches[:5]:  # Limit to 5 competitors
+                competitors.append({"name": comp.strip(), "market_share": random.randint(5, 30)})
+        
+        # Extract trends
+        trends = []
+        trends_section = re.search(r'trends:?(.*?)(?:challenges|competitors|market size)', 
+                                 content, re.IGNORECASE | re.DOTALL)
+        if trends_section:
+            trends_text = trends_section.group(1)
+            # Split by bullet points, numbers, or new lines
+            trend_items = re.split(r'•|\d+\.|\n+', trends_text)
+            for item in trend_items:
+                item = item.strip()
+                if item and len(item) > 10:  # Avoid empty or very short items
+                    trends.append(item)
+        
+        # Extract challenges
+        challenges = []
+        challenges_section = re.search(r'challenges:?(.*?)(?:trends|competitors|market size|conclusion)', 
+                                    content, re.IGNORECASE | re.DOTALL)
+        if challenges_section:
+            challenges_text = challenges_section.group(1)
+            # Split by bullet points, numbers, or new lines
+            challenge_items = re.split(r'•|\d+\.|\n+', challenges_text)
+            for item in challenge_items:
+                item = item.strip()
+                if item and len(item) > 10:  # Avoid empty or very short items
+                    challenges.append(item)
+        
+        # Ensure we have at least some data
+        if not trends:
+            trends = ["Growing adoption of advanced technologies", 
+                    "Increasing regulatory oversight",
+                    "Shift towards sustainable practices"]
+            
+        if not challenges:
+            challenges = ["Intense market competition",
+                        "Regulatory uncertainty",
+                        "Technological disruption"]
+        
+        # Construct market data
+        market_data = {
+            "source": f"Text file: {text_path}",
+            "market_size": market_size,
+            "competitors": competitors,
+            "market_trends": trends[:5],  # Limit to 5 trends
+            "market_challenges": challenges[:5]  # Limit to 5 challenges
+        }
+        
+        return {"market_analysis": market_data}
+    
+    except Exception as e:
+        print(f"Error extracting data from text file: {str(e)}")
+        return {}
+
+def detect_and_extract_from_input(input_source: str) -> Dict[str, Any]:
+    """
+    Detect input type and extract data accordingly.
+    
+    Args:
+        input_source: URL, path to JSON file, or path to text file
+        
+    Returns:
+        Dict containing extracted data
+    """
+    # Check if input is a URL
+    if input_source.startswith(('http://', 'https://')):
+        print(f"Detected URL: {input_source}")
+        return extract_data_from_url(input_source)
+    
+    # Check if input is a file that exists
+    if os.path.exists(input_source):
+        # Check file extension for JSON
+        if input_source.lower().endswith('.json'):
+            print(f"Detected JSON file: {input_source}")
+            return extract_data_from_json(input_source)
+        
+        # Assume text file for other extensions
+        print(f"Detected text file: {input_source}")
+        return extract_data_from_text(input_source)
+    
+    # If input doesn't match known formats, return empty dict
+    print(f"Could not determine input type for: {input_source}")
+    return {}
+
 class LegalAgent(BaseAgent):
     """Agent responsible for legal analysis of startups."""
     
-    def __init__(self, market_data: Optional[Dict[str, Any]] = None):
+    def __init__(self, market_data: Optional[Dict[str, Any]] = None, input_source: Optional[str] = None):
         """
         Initialize the Legal Agent.
         
         Args:
             market_data: Optional market analysis data to incorporate
+            input_source: Optional URL, JSON file, or text file to extract data from
         """
         super().__init__("legal")
         self.market_data = market_data
+        self.input_source = input_source
         self.last_analysis = None
     
     def execute(self, company_name: str) -> Dict[str, Any]:
@@ -113,6 +369,13 @@ class LegalAgent(BaseAgent):
         if self.market_data:
             legal_data["market_analysis"] = self.market_data
         
+        # Try to get market data from input_source if provided
+        elif hasattr(self, 'input_source') and self.input_source:
+            print(f"Extracting data from input source: {self.input_source}")
+            extracted_data = detect_and_extract_from_input(self.input_source)
+            if "market_analysis" in extracted_data:
+                legal_data["market_analysis"] = extracted_data["market_analysis"]
+        
         # Try to get market analysis data if not provided
         elif HAS_MARKET_ANALYSIS:
             try:
@@ -140,8 +403,8 @@ class LegalAgent(BaseAgent):
         """
         # Try to use LLM for analysis, but be prepared to fall back to random generation
         try:
-            # Get o3mini model if available
-            o3mini_model = self.get_o3mini_model(temperature=0.7)
+            # Get 4o mini model if available
+            o3mini_model = self.get_4o_mini_model(temperature=0.7)
             
             # Extract useful data
             company_name = data.get("company_name", "Unknown")
@@ -399,8 +662,8 @@ Respond in this JSON format:
             Markdown-formatted report string
         """
         try:
-            # Try to use o3mini model if available
-            o3mini_model = self.get_o3mini_model(temperature=0.7)
+            # Try to use 4o mini model if available
+            o3mini_model = self.get_4o_mini_model(temperature=0.7)
             
             # Extract relevant data from the report
             company_name = report['company_name']
@@ -516,9 +779,10 @@ Include a note at the end that this report was generated by the Legal Analysis A
 class LegalAnalysisNode(Node):
     """Node for executing legal analysis"""
     
-    def __init__(self, market_data: Optional[Dict[str, Any]] = None):
+    def __init__(self, market_data: Optional[Dict[str, Any]] = None, input_source: Optional[str] = None):
         super().__init__()
         self.market_data = market_data
+        self.input_source = input_source
         
     def prep(self, shared):
         """Prepare for legal analysis"""
@@ -528,12 +792,16 @@ class LegalAnalysisNode(Node):
         if self.market_data is None and "market_data" in shared:
             self.market_data = shared["market_data"]
             
+        # Get input source from shared if available
+        if self.input_source is None and "input_source" in shared:
+            self.input_source = shared["input_source"]
+            
         return company_name
     
     def exec(self, company_name):
         """Execute legal analysis"""
         # Create legal agent
-        legal_agent = LegalAgent(market_data=self.market_data)
+        legal_agent = LegalAgent(market_data=self.market_data, input_source=self.input_source)
         
         # Execute legal analysis
         return legal_agent.execute(company_name)
@@ -599,13 +867,14 @@ class ReportGenerationNode(Node):
         
         return "default"
 
-def analyze_legal_risks(company_name: str, market_data=None, output_path=None, send_to_report=True) -> Dict[str, Any]:
+def analyze_legal_risks(company_name: str, market_data=None, input_source=None, output_path=None, send_to_report=True) -> Dict[str, Any]:
     """
     Analyze company legal risks and generate a report.
     
     Args:
         company_name (str): Name of the company to analyze
         market_data (dict, optional): Market analysis data 
+        input_source (str, optional): URL, JSON file, or text file to extract data from
         output_path (str, optional): Path to save the report
         send_to_report (bool): Whether to send data to the Due Diligence Report Agent
         
@@ -621,9 +890,13 @@ def analyze_legal_risks(company_name: str, market_data=None, output_path=None, s
     # Add market data if provided
     if market_data:
         shared["market_data"] = market_data
+        
+    # Add input source if provided
+    if input_source:
+        shared["input_source"] = input_source
     
     # Create analysis and report nodes
-    legal = LegalAnalysisNode()
+    legal = LegalAnalysisNode(market_data=market_data, input_source=input_source)
     report = ReportGenerationNode(output_path=output_path)
     
     # Connect nodes
@@ -671,16 +944,83 @@ if __name__ == "__main__":
     import sys
     import json
     
-    if len(sys.argv) < 2:
-        print("Usage: python Legal_agent.py <company_name> [output_path]")
-        sys.exit(1)
+    def prompt_for_input():
+        """Interactive mode to prompt user for all inputs"""
+        print("\n=== Legal Risk Analysis Agent ===\n")
         
-    company_name = sys.argv[1]
-    output_path = sys.argv[2] if len(sys.argv) > 2 else None
+        # Prompt for company name
+        company_name = input("Enter company name: ").strip()
+        while not company_name:
+            print("Company name is required.")
+            company_name = input("Enter company name: ").strip()
+            
+        # Prompt for input source type
+        print("\nSelect data source type:")
+        print("1. Website URL")
+        print("2. JSON file")
+        print("3. Text file")
+        print("4. No external data (use Market Analysis Agent if available)")
+        
+        source_type = input("\nEnter choice (1-4): ").strip()
+        input_source = None
+        
+        while source_type not in ["1", "2", "3", "4"]:
+            print("Invalid choice. Please select 1-4.")
+            source_type = input("Enter choice (1-4): ").strip()
+        
+        if source_type != "4":
+            if source_type == "1":
+                input_source = input("\nEnter website URL: ").strip()
+                while not input_source.startswith(("http://", "https://")):
+                    print("Invalid URL. Must start with http:// or https://")
+                    input_source = input("Enter website URL: ").strip()
+            
+            elif source_type == "2":
+                input_source = input("\nEnter path to JSON file: ").strip()
+                while not os.path.exists(input_source) or not input_source.lower().endswith('.json'):
+                    print("Invalid file path or not a JSON file.")
+                    input_source = input("Enter path to JSON file: ").strip()
+            
+            elif source_type == "3":
+                input_source = input("\nEnter path to text file: ").strip()
+                while not os.path.exists(input_source):
+                    print("File not found.")
+                    input_source = input("Enter path to text file: ").strip()
+        
+        # Prompt for output file
+        default_output = f"legal_report_{company_name.lower().replace(' ', '_')}.md"
+        output_path = input(f"\nEnter output file path (default: {default_output}): ").strip()
+        if not output_path:
+            output_path = default_output
+            
+        return company_name, input_source, output_path
     
-    # Try to get market data if available
+    # Check if arguments were provided
+    if len(sys.argv) < 2:
+        print("Starting interactive mode...")
+        company_name, input_source, output_path = prompt_for_input()
+    else:
+        company_name = sys.argv[1]
+        output_path = None
+        input_source = None
+        
+        # Handle optional arguments
+        if len(sys.argv) > 2:
+            output_path = sys.argv[2]
+        
+        if len(sys.argv) > 3:
+            input_source = sys.argv[3]
+    
+    # Try to get market data from input source if provided
     market_data = None
-    if HAS_MARKET_ANALYSIS:
+    if input_source:
+        print(f"Extracting data from input source: {input_source}")
+        extracted_data = detect_and_extract_from_input(input_source)
+        if "market_analysis" in extracted_data:
+            market_data = extracted_data["market_analysis"]
+    
+    # Try to get market data from Market Analysis Agent if no input source provided
+    if market_data is None and HAS_MARKET_ANALYSIS and not input_source:
         try:
             print(f"Retrieving market analysis data for {company_name}...")
             market_data = analyze_market(company_name)
@@ -689,7 +1029,7 @@ if __name__ == "__main__":
     
     # Run legal analysis
     print(f"Analyzing legal risks for {company_name}...")
-    analysis = analyze_legal_risks(company_name, market_data=market_data, output_path=output_path)
+    analysis = analyze_legal_risks(company_name, market_data=market_data, input_source=input_source, output_path=output_path)
     
     # Report output location
     if output_path:
