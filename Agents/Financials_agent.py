@@ -1,8 +1,8 @@
 """
 Financial Agent for Multi-Agent Due Diligence System
 
-This file provides a high-level interface to the Financial Agent implementation
-using PocketFlow's node-based architecture.
+This file provides a high-level interface to the Financial Agent implementation.
+It focuses on financial analysis and can receive data from other agents.
 """
 
 from typing import Dict, Any, Optional
@@ -11,12 +11,18 @@ from .financial_agent.agent import FinancialAgent
 from .screening_agent.agent import ScreeningAgent
 from .base_agent import AgentContext
 
-# Try to import market analysis
+# Try to import related agents
 try:
     from .Market_analysis_agent import analyze_market
     HAS_MARKET_ANALYSIS = True
 except ImportError:
     HAS_MARKET_ANALYSIS = False
+
+try:
+    from .Due_dillegence_report_agent import get_report_agent
+    HAS_REPORT_AGENT = True
+except ImportError:
+    HAS_REPORT_AGENT = False
 
 class FinancialAnalysisNode(Node):
     """Node for executing financial analysis"""
@@ -54,6 +60,17 @@ class FinancialAnalysisNode(Node):
     def post(self, shared, prep_res, exec_res):
         """Process analysis results"""
         shared["financial_analysis"] = exec_res
+        
+        # Send data to Due Diligence Report Agent if available
+        if HAS_REPORT_AGENT and exec_res:
+            try:
+                report_agent = get_report_agent()
+                if report_agent:
+                    report_agent.add_financial_data(exec_res)
+                    print("Financial analysis data sent to Due Diligence Report Agent")
+            except Exception as e:
+                print(f"Warning: Failed to send data to Due Diligence Report Agent: {str(e)}")
+                
         return "default"
 
 class ReportGenerationNode(Node):
@@ -101,55 +118,77 @@ class ReportGenerationNode(Node):
         
         return "default"
 
-class ScreeningNode(Node):
-    """Node for running screening process"""
+def analyze_financials(company_name: str, screening_agent=None, market_data=None, output_path=None, send_to_report=True) -> Dict[str, Any]:
+    """
+    Analyze company financials and generate a report.
     
-    def __init__(self, context: Optional[AgentContext] = None):
-        super().__init__()
-        self.context = context
-        self.screening_agent = None
+    Args:
+        company_name (str): Name of the company to analyze
+        screening_agent (ScreeningAgent, optional): Screening agent with company data
+        market_data (dict, optional): Market analysis data 
+        output_path (str, optional): Path to save the report
+        send_to_report (bool): Whether to send data to the Due Diligence Report Agent
         
-    def prep(self, shared):
-        """Prepare for screening"""
-        company_name = shared.get("company_name", "Unknown")
-        context = self.context or AgentContext(company_name=company_name)
-        self.screening_agent = ScreeningAgent(context=context)
-        return company_name
+    Returns:
+        Dict containing the financial analysis results
+    """
+    # Create shared data store
+    shared = {
+        "company_name": company_name,
+        "send_to_report": send_to_report
+    }
     
-    def exec(self, company_name):
-        """Execute screening process"""
-        return self.screening_agent.execute(company_name)
+    # Add screening agent if provided
+    if screening_agent:
+        shared["screening_agent"] = screening_agent
     
-    def post(self, shared, prep_res, exec_res):
-        """Process screening results"""
-        shared["screening_results"] = exec_res
-        shared["screening_agent"] = self.screening_agent
-        return "default"
+    # Add market data if provided
+    if market_data:
+        shared["market_data"] = market_data
+    
+    # Create analysis and report nodes
+    financial = FinancialAnalysisNode()
+    report = ReportGenerationNode(output_path=output_path)
+    
+    # Connect nodes
+    financial >> report
+    
+    # Create and run flow
+    flow = Flow(start=financial)
+    flow.run(shared)
+    
+    # Return analysis results
+    return shared.get("financial_analysis", {})
 
-class MarketAnalysisNode(Node):
-    """Node for running market analysis"""
+def get_financial_data(company_name: str = None) -> Dict[str, Any]:
+    """
+    Get the last financial analysis results for a company.
     
-    def prep(self, shared):
-        """Prepare for market analysis"""
-        if not HAS_MARKET_ANALYSIS:
-            return None
-        return shared.get("company_name", "Unknown")
+    This function can be called by other agents (e.g., Due Diligence Report Agent)
+    to get financial analysis data.
     
-    def exec(self, company_name):
-        """Execute market analysis"""
-        if company_name is None:
-            return None
-        try:
-            return analyze_market(company_name)
-        except Exception as e:
-            print(f"Warning: Failed to get market analysis: {str(e)}")
-            return None
+    Args:
+        company_name: Optional company name filter
+        
+    Returns:
+        Dict containing the financial analysis results
+    """
+    # In a production environment, this would retrieve data from a database
+    # For simplicity, we'll check if we have an already-created FinancialAgent
+    # with analysis results, or create a new one if needed
+    financial_agent = FinancialAgent()
     
-    def post(self, shared, prep_res, exec_res):
-        """Process market analysis results"""
-        if exec_res:
-            shared["market_data"] = exec_res
-        return "default"
+    # Check if we have saved analysis for this company
+    if hasattr(financial_agent, 'last_analysis') and financial_agent.last_analysis:
+        if company_name is None or financial_agent.last_analysis.get('company_name') == company_name:
+            return financial_agent.last_analysis
+    
+    # If no saved analysis or doesn't match company, create a new analysis
+    if company_name:
+        return analyze_financials(company_name, send_to_report=False)
+    
+    # Return empty dict if no company name and no saved analysis
+    return {}
 
 # Main function for CLI usage
 if __name__ == "__main__":
@@ -163,41 +202,21 @@ if __name__ == "__main__":
     company_name = sys.argv[1]
     output_path = sys.argv[2] if len(sys.argv) > 2 else None
     
-    # Create shared data store
-    shared = {"company_name": company_name}
+    # Try to get market data if available
+    market_data = None
+    if HAS_MARKET_ANALYSIS:
+        try:
+            print(f"Retrieving market analysis data for {company_name}...")
+            market_data = analyze_market(company_name)
+        except Exception as e:
+            print(f"Warning: Could not retrieve market analysis: {str(e)}")
     
-    print(f"Starting financial analysis flow for {company_name}...")
-    print("1. Running initial screening process...")
+    # Run financial analysis
+    print(f"Analyzing financials for {company_name}...")
+    analysis = analyze_financials(company_name, market_data=market_data, output_path=output_path)
     
-    # Create nodes with progress updates
-    screening = ScreeningNode()
-    market = MarketAnalysisNode()
-    financial = FinancialAnalysisNode()
-    report = ReportGenerationNode(output_path=output_path)
-    
-    # Create callbacks for progress updates
-    def after_screening(node, shared):
-        print("2. Gathering market analysis data...")
-        
-    def after_market(node, shared):
-        print("3. Performing financial analysis...")
-        
-    def after_financial(node, shared):
-        print("4. Generating financial report...")
-    
-    # Connect nodes with callbacks
-    screening >> after_screening >> market >> after_market >> financial >> after_financial >> report
-    
-    # Create and run flow
-    flow = Flow(start=screening)
-    flow.run(shared)
-    
-    print("5. Analysis complete!")
-    
-    # Output results
-    if "report_path" in shared:
-        print(f"Financial report saved to: {shared['report_path']}")
-    elif "financial_analysis" in shared:
-        print(json.dumps(shared["financial_analysis"], indent=2))
+    # Report output location
+    if output_path:
+        print(f"Financial report saved to: {output_path}")
     else:
-        print("No analysis results generated.")
+        print(json.dumps(analysis, indent=2))
