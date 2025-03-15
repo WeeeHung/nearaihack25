@@ -27,36 +27,21 @@ DiligenceAI addresses these challenges by automating information gathering and a
 
 - **Screening Agent**: Initial assessment and data collection for target companies
 - **Market Analysis Agent**: Analyzes market trends, size, competitors, and growth potential
-- **Financial Agent**: Evaluates financial health, metrics, projections, and risks
-- **Legal Agent**: Identifies legal risks, regulatory issues, and compliance challenges
 - **Competitors Agent**: Analyzes competitive landscape, market share, and competitive advantages
 - **Team Evaluation Agent**: Assesses leadership team, expertise, and organizational structure
 - **Technical Due Diligence Agent**: Evaluates technical infrastructure, IP, and innovation potential
 - **Due Diligence Report Agent**: Aggregates data from other agents and generates a comprehensive report
 - **Final Decision Agent**: Provides an overall assessment and recommendation
 
+
+
+## 🗺️ Flow Chart
+
+<img width="463" alt="Screen Shot 2025-03-15 at 9 37 39 AM" src="https://github.com/user-attachments/assets/a5d8149f-c5fe-4d92-a41e-6449a7d420ce" />
+
 ## 🏗️ Technical Architecture
 
-DiligenceAI follows a modular architecture based on the PocketFlow framework:
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    DiligenceAI System                        │
-├───────────┬───────────┬────────────┬───────────┬────────────┤
-│ Screening │  Market   │ Financial  │  Legal    │ Competitors│
-│  Agent    │  Agent    │   Agent    │  Agent    │   Agent    │
-├───────────┼───────────┼────────────┼───────────┼────────────┤
-│   Team    │  Tech DD  │ DD Report  │  Final    │            │
-│   Eval    │   Agent   │   Agent    │ Decision  │            │
-└───────────┴───────────┴────────────┴───────────┴────────────┘
-                              │
-                              ▼
-                    ┌───────────────────┐
-                    │  Comprehensive    │
-                    │ Due Diligence     │
-                    │     Report        │
-                    └───────────────────┘
-```
+DiligenceAI follows a modular architecture based on the PocketFlow framework
 
 Key architectural features:
 - **Agent Orchestration**: Central coordination of specialized agents
