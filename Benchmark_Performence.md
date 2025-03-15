@@ -8,7 +8,6 @@
   - total_data_sources: 10.0
   - total_errors: 0.0
   - agent_metrics
-    - MockAgent
       - avg_execution_time: 7.501913071
       - avg_api_calls: 16.0
       - avg_tokens
