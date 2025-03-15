@@ -1,17 +1,18 @@
-from base_agent import BaseAgent
+from .base_agent import BaseAgent
 import json
 from typing import List, Dict, Any
-
+from nearai.agents.environment import Environment
 class DueDiligenceReportAgent(BaseAgent):
-    def __init__(self, name="DueDiligenceReportAgent"):
+    def __init__(self, env: Environment, name="DueDiligenceReportAgent"):
         """
         Initialize the due diligence report agent.
         
         This agent takes results from other agents in JSON format and compiles
         them into a comprehensive, human-readable due diligence report.
         """
-        super().__init__(name=name)
-    
+        super().__init__(env, name=name)
+        self.env.add_system_log("DueDiligenceReportAgent initialized")
+
     def run(self, json_data_list: List[Dict[str, Any]]) -> str:
         """
         Compile the final due diligence report from the provided JSON data.
@@ -22,6 +23,7 @@ class DueDiligenceReportAgent(BaseAgent):
         Returns:
             str: A well-formatted, comprehensive due diligence report
         """
+        self.env.add_system_log("Running DueDiligenceReportAgent")
         # Combine all JSON data into a single comprehensive structure
         combined_data = self._combine_json_data(json_data_list)
         
@@ -151,51 +153,5 @@ class DueDiligenceReportAgent(BaseAgent):
         """
         # Store the generated report in shared data
         shared["due_diligence_report"] = exec_res
-        print("Due diligence report generated successfully")
+        # self.env.add_system_log("Due diligence report generated successfully")
         return "default"
-
-if __name__ == "__main__":
-    # Sample test data
-    sample_data = [
-        {
-            "market_analysis": {
-                "industry_overview": {
-                    "description": "AI-powered enterprise decision support systems",
-                    "size": "$50B global market",
-                    "growth_rate": "25% YoY growth",
-                    "trends": ["Increasing adoption of AI in enterprise", "Shift toward real-time decision support"]
-                },
-                "target_audience": {
-                    "customer_segments": ["Fortune 500 companies", "Mid-sized enterprises"],
-                    "customer_needs": "Faster and more accurate decision-making"
-                }
-            }
-        },
-        {
-            "team_eval": {
-                "founders": {
-                    "founder_name": "Dr. Sarah Chen",
-                    "background": "Former ML Director at Google, Stanford PhD",
-                    "role": "CEO"
-                }
-            }
-        },
-        {
-            "financial": {
-                "revenue_model": {
-                    "business_model": "SaaS subscription",
-                    "pricing": "$100K-$500K annual contracts"
-                },
-                "historical_financials": {
-                    "revenue": {
-                        "year_1": "$2.5M ARR"
-                    }
-                }
-            }
-        }
-    ]
-    
-    # Test the agent
-    agent = DueDiligenceReportAgent()
-    report = agent.run(sample_data)
-    print(report)
