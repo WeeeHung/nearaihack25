@@ -1,11 +1,21 @@
 import openai
 import json
 from base_agent import BaseAgent
+from dotenv import load_dotenv
+import os
+from openai import OpenAI
 
 class TechDdAgent(BaseAgent):
-    def __init__(self, name="TechDdAgent", max_retries=2):
+    load_dotenv()
+    def __init__(self, name="TechDdAgent"):
         """Initialize the tech DD agent."""
+        # Initialize any attributes before calling super().__init__
+        self.env = type('obj', (object,), {'env_vars': os.environ})
+        
+        # Now call the parent constructor
         super().__init__(name)
+        
+        # Initialize OpenAI client
         self._load_api_keys()
         self.client = openai.Client(api_key=self.api_keys.get("OPENAI_API_KEY"))
 
@@ -18,197 +28,39 @@ class TechDdAgent(BaseAgent):
 
     def exec(self, data):
         """Perform technical due diligence analysis."""
-        company_name = self._extract_company_name(data["company_info"])
-        
-        # Create analysis structure
-        tech_dd = {
-            "architecture": self._analyze_architecture(data["company_info"]),
-            "technical_differentiation": self._analyze_differentiation(data["company_info"]),
-            "team_technical_assessment": self._analyze_team(data["team_data"], data["company_info"]),
-            "engineering_factors": self._analyze_engineering_factors(data),
-            "summary": {}
-        }
-        
-        # Generate summary after all sections are complete
-        tech_dd["summary"] = self._generate_summary(tech_dd, company_name)
-        
-        return tech_dd
 
-    def _extract_company_name(self, company_info):
-        """Extract company name from information."""
-        # Simple extraction or use default
-        if not company_info:
-            return "Unknown Company"
-            
-        prompt = f"Extract only the company name from this text: {company_info[:500]}"
+        print("data", data)
+        
+        prompt = f"""
+        You are a technical due diligence agent. You are given a company's information and team profiles.
+        You need to research the company's technical architecture, technical differentiation, team technical assessment, and engineering factors.
+        You need to generate a technical due diligence report.
+
+        Specifically, you need to analyze the following:
+        - Company's technical architecture
+        - Company's technical differentiation
+        - Company's technical feasibility
+        - Team technical assessment, and whether the team's background is suitable to execute on the company's technical architecture and differentiation
+        - Other potential engineering risks and mitigations
+
+        If you need more information, search the web for those information. Do not ask for more information from the user.
+        Give a summary about what the tech is about, what the product is, what the market is,
+        how the tech works, how the product is used, and what the market demand is.
+
+        You need to generate a technical due diligence report.
+
+        Here is the company information: {data}
+        """
+
         response = self.client.chat.completions.create(
-            model="gpt-4o",
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=50
+            model="gpt-4o-search-preview",
+            web_search_options={},
+            messages=[
+                {"role": "system", "content": prompt}
+            ]
         )
-        return response.choices[0].message.content.strip() or "Unknown Company"
 
-    def _analyze_architecture(self, company_info):
-        """Analyze technical architecture."""
-        if not company_info:
-            return self._empty_architecture()
-            
-        prompt = f"""
-        Based on this company information, analyze their technical architecture.
-        If details aren't specified, make educated inferences based on their industry and product:
-        
-        {company_info}
-        
-        Return a JSON object with these fields:
-        - stack: array of technologies used
-        - architecture_type: (monolithic/microservices/serverless/etc)
-        - infrastructure: (cloud/on-premise/hybrid)
-        - scalability_assessment: text analysis
-        - security_assessment: text analysis
-        - technical_debt: text analysis
-        """
-        
-        try:
-            response = self.client.chat.completions.create(
-                model="gpt-4o-search-preview",
-                web_search_options={},
-                messages=[{"role": "user", "content": prompt}],
-                response_format={"type": "json_object"}
-            )
-            return json.loads(response.choices[0].message.content)
-        except:
-            return self._empty_architecture()
-
-    def _empty_architecture(self):
-        """Return empty architecture structure."""
-        return {
-            "stack": [],
-            "architecture_type": "Unknown",
-            "infrastructure": "Unknown",
-            "scalability_assessment": "No data available",
-            "security_assessment": "No data available",
-            "technical_debt": "No data available"
-        }
-
-    def _analyze_differentiation(self, company_info):
-        """Analyze technical differentiation."""
-        if not company_info:
-            return {"differentiators": []}
-            
-        prompt = f"""
-        Identify technical differentiators for this company:
-        {company_info}
-        
-        Return a JSON object with a single field "differentiators" containing an array of objects with:
-        - name: brief name of the differentiator
-        - description: explanation
-        - advantage_level: (Low/Medium/High)
-        - sustainability: assessment of how hard this would be to replicate
-        """
-        
-        try:
-            response = self.client.chat.completions.create(
-                model="gpt-4o-search-preview",
-                web_search_options={},
-                messages=[{"role": "user", "content": prompt}],
-                response_format={"type": "json_object"}
-            )
-            return json.loads(response.choices[0].message.content)
-        except:
-            return {"differentiators": []}
-
-    def _analyze_team(self, team_data, company_info):
-        """Analyze technical capabilities of the team."""
-        if not team_data:
-            return self._empty_team_assessment()
-            
-        prompt = f"""
-        Evaluate the technical capabilities of this team:
-        {json.dumps(team_data)}
-        
-        For this company:
-        {company_info}
-        
-        Return a JSON with:
-        - technical_expertise_match: (Low/Medium/High)
-        - technical_leadership: assessment text
-        - key_strengths: array of technical strengths
-        - gaps: array of missing technical expertise
-        - risk_assessment: text evaluation of technical risk
-        """
-        
-        try:
-            response = self.client.chat.completions.create(
-                model="gpt-4o",
-                messages=[{"role": "user", "content": prompt}],
-                response_format={"type": "json_object"}
-            )
-            return json.loads(response.choices[0].message.content)
-        except:
-            return self._empty_team_assessment()
-            
-    def _empty_team_assessment(self):
-        """Return empty team assessment structure."""
-        return {
-            "technical_expertise_match": "Unknown",
-            "technical_leadership": "No data available",
-            "key_strengths": [],
-            "gaps": [],
-            "risk_assessment": "No data available"
-        }
-
-    def _analyze_engineering_factors(self, data):
-        """Analyze engineering success factors."""
-        company_info = data.get("company_info", "")
-        if not company_info:
-            return {"factors": []}
-            
-        prompt = f"""
-        Identify key engineering success factors for this company:
-        {company_info}
-        
-        Return a JSON object with a single field "factors" containing an array of objects with:
-        - name: name of the factor (e.g., "Development Methodology")
-        - assessment: text analysis
-        - impact: (Low/Medium/High)
-        """
-        
-        try:
-            response = self.client.chat.completions.create(
-                model="gpt-4o",
-                messages=[{"role": "user", "content": prompt}],
-                response_format={"type": "json_object"}
-            )
-            return json.loads(response.choices[0].message.content)
-        except:
-            return {"factors": []}
-
-    def _generate_summary(self, tech_dd, company_name):
-        """Generate summary of technical findings."""
-        try:
-            summary_prompt = f"""
-            Create a concise technical due diligence summary for {company_name} based on:
-            {json.dumps(tech_dd)}
-            
-            Return a JSON with:
-            - executive_summary: brief overview text
-            - strengths: array of key technical strengths
-            - risks: array of key technical risks
-            - viability_rating: (Low/Medium/High)
-            - recommendations: array of technical improvement suggestions
-            """
-            
-            model = self.get_4o_mini_model()
-            response = model(summary_prompt)
-            return response
-        except:
-            return {
-                "executive_summary": "Insufficient data for complete analysis",
-                "strengths": [],
-                "risks": [],
-                "viability_rating": "Unknown",
-                "recommendations": []
-            }
+        return response.choices[0].message.content
 
     def post(self, shared, prep_res, exec_res):
         """Save results to shared store."""
@@ -220,34 +72,3 @@ class TechDdAgent(BaseAgent):
             
         print(f"Technical DD report saved to tech_dd_report.json")
         return "default"
-
-if __name__ == "__main__":
-    agent = TechDdAgent()
-    shared = {"data": """
-Company Name: QuantumVision AI
-
-Description: QuantumVision AI is a deep tech startup founded in 2020 that specializes in combining quantum computing algorithms with computer vision to achieve unprecedented accuracy in real-time image recognition and analysis. Their flagship product, QuantumSight, can process and analyze video feeds 100x faster than traditional solutions while using 80% less computational resources.
-
-Technology: The company has developed a proprietary method for encoding visual data in quantum-inspired tensors, allowing for efficient parallel processing on both classical and quantum-ready hardware. Their core algorithm incorporates elements of quantum annealing and tensor network theory to dramatically reduce the dimensionality of visual data while preserving critical information.
-
-Products:
-1. QuantumSight Pro - Enterprise-grade computer vision system for manufacturing quality control
-2. QuantumSight Edge - Lightweight implementation designed for IoT and edge devices
-3. QuantumVision API - Cloud-based API service for developers to integrate vision capabilities
-
-Market: Initially focused on manufacturing quality control, QuantumVision's technology has applications in autonomous vehicles, medical imaging, retail analytics, and security systems. Their current client base includes 3 Fortune 500 manufacturing companies and several mid-sized industrial automation firms.
-
-Business Model: SaaS with tiered pricing based on processing volume, plus consulting services for custom implementations. Enterprise licenses start at $50,000/year.
-
-Funding: Seed round of $2M (2020), Series A of $8M (2022) led by TechVentures Capital. Currently preparing for Series B.
-
-Traction: ARR of $1.5M with 120% YoY growth. 18 enterprise customers with 92% retention rate.
-
-Competition: Competing against traditional computer vision companies like Cognex and newer AI-focused startups, though their quantum-inspired approach gives them a unique position in the market.
-
-Team Size: 24 employees (14 in engineering, 4 in sales/marketing, 3 in operations, 3 in leadership)
-"""}
-    prep_data = agent.prep(shared)
-    exec_data = agent.exec(prep_data)
-    print(exec_data)
-
