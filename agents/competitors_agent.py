@@ -1,23 +1,19 @@
 import openai
 import json
-from base_agent import BaseAgent
-
+from .base_agent import BaseAgent
+from nearai.agents.environment import Environment
 class CompetitorsAgent(BaseAgent):
-    def __init__(self, name="CompetitorsAgent"):
+    def __init__(self, env:Environment, name="CompetitorsAgent"):
         """
         Initialize the competitors agent with specific functionality.
         
         Args:
             name (str): Name of the agent
         """
-        super().__init__(name)
-        
-        # Load API keys from environment variables
-        self._load_api_keys()
-        
-        # Initialize OpenAI client
-        self.client = openai.Client(api_key=self.api_keys.get("OPENAI_API_KEY"))
-    
+        super().__init__(env, name=name)
+        self.client = openai.OpenAI(api_key=self.api_keys["OPENAI_API_KEY"])
+        self.env.add_system_log("CompetitorsAgent initialized")
+
     def prep(self, shared):
         """
         Prepare data for execution. Extract the company information from shared store.
@@ -30,7 +26,7 @@ class CompetitorsAgent(BaseAgent):
         """
         return shared.get("company_info", "")
     
-    def exec(self, company_info):
+    def run(self, company_info):
         """
         Execute a search for competitors using the OpenAI API.
         
@@ -40,6 +36,7 @@ class CompetitorsAgent(BaseAgent):
         Returns:
             dict: Structured data about competitors
         """
+        self.env.add_system_log("Running CompetitorsAgent")
         search_prompt = f"""
             I need to find comprehensive information about competitors for the following company:
             {company_info}
@@ -87,7 +84,7 @@ class CompetitorsAgent(BaseAgent):
             Format the response as a JSON object with a single key "competitors" containing an array of strings with ONLY the company names.
         """
         
-        gptmodel = self.get_4omini_model(temperature=0.7)
+        gptmodel = self.get_4o_mini_model(temperature=0.7)
         response = gptmodel(extraction_prompt)
 
         response = json.loads(response.split("```json")[1].split("```")[0])
@@ -154,30 +151,29 @@ class CompetitorsAgent(BaseAgent):
             
             Return ONLY a JSON object with EXACTLY this structure:
             {{
-            "companyProfile": {{
-                "name": "{competitor_name}",
-                "yearFounded": "YEAR",
-                "headquarters": "LOCATION",
-                "website": "URL",
-                "fundingStage": "STAGE",
-                "lastFundedAmount": "AMOUNT",
-                "totalFundsRaised": "AMOUNT",
-                "lastValuation": "AMOUNT",
-                "investors": ["INVESTOR1", "INVESTOR2"]
-            }},
-            "description": "DESCRIPTION",
-            "comparisons": {{
-                "similarities": ["SIMILARITY1", "SIMILARITY2", "SIMILARITY3"],
-                "differences": ["DIFFERENCE1", "DIFFERENCE2", "DIFFERENCE3"]
-            }},
-            "is_direct": true/false
+                "companyProfile": {{
+                    "name": "{competitor_name}",
+                    "yearFounded": "YEAR",
+                    "headquarters": "LOCATION",
+                    "website": "URL",
+                    "fundingStage": "STAGE",
+                    "lastFundedAmount": "AMOUNT",
+                    "totalFundsRaised": "AMOUNT",
+                    "lastValuation": "AMOUNT",
+                    "investors": ["INVESTOR1", "INVESTOR2"]
+                }},
+                "description": "DESCRIPTION",
+                "comparisons": {{
+                    "similarities": ["SIMILARITY1", "SIMILARITY2", "SIMILARITY3"],
+                    "differences": ["DIFFERENCE1", "DIFFERENCE2", "DIFFERENCE3"]
+                }},
+                "is_direct": true/false
             }}
             
             Ensure you include at least 3 specific similarities and 3 specific differences.
             The "is_direct" field should be true if {competitor_name} competes directly with the original company.
         """
-        
-        gptmodel = self.get_4omini_model(temperature=0.7)
+        gptmodel = self.get_4o_mini_model(temperature=0.7)
         # Second call: With JSON response format (no web search)
         parse_response = gptmodel(parse_prompt)
         
