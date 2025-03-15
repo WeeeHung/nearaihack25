@@ -179,7 +179,7 @@ class CompetitorsAgent(BaseAgent):
         
         # Parse the structured JSON response
         competitor_details = json.loads(parse_response.split("```json")[1].split("```")[0])
-        return competitor_details
+        return parse_response
     
     def post(self, shared, prep_res, exec_res):
         """

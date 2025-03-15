@@ -1,9 +1,11 @@
-from Dependencies.pocketflow import Node
+# from Dependencies.pocketflow import Node
 # from Dependencies.bs4 import BeautifulSoup
 import os
 import json
 import openai
 from nearai.agents.environment import Environment
+from pocketflow import Node
+from bs4 import BeautifulSoup
 
 class BaseAgent(Node):
     def __init__(self, env: Environment, name="BaseAgent"):
