@@ -2,6 +2,7 @@ from nearai.agents.environment import Environment
 
 # IMPORT THE MULTI-AGENT SYSTEM
 from Agents.Screening_agent import ScreeningAgent
+from Agents.Due_dillegence_report_agent import DueDiligenceReportAgent
 
 def run(env: Environment):
     # A system message guides an agent to solve specific tasks.
@@ -19,8 +20,11 @@ def run(env: Environment):
     # result = env.completion([prompt] + env.list_messages()) # including the prompt with the full chat history (TODO: check if this is necessary)
 
     screening_output = ScreeningAgent.run(prompt)
+    # Other outputs by other agents
 
-    result = screening_output
+    report_output = DueDiligenceReportAgent.run([screening_output])
+
+    result = report_output
     # Store the result in the chat history
     env.add_reply(result)
 

@@ -101,7 +101,6 @@ class BaseAgent(Node):
         
         return generate_text
 
-    
     # Node methods that can be overridden by child agents
     def prep(self, shared):
         """
