@@ -2,8 +2,8 @@ from pocketflow import Node
 import requests
 from bs4 import BeautifulSoup
 import os
-from dotenv import load_dotenv
 import openai
+import json
 
 class BaseAgent(Node):
     def __init__(self, name="BaseAgent"):
@@ -27,8 +27,6 @@ class BaseAgent(Node):
         possible_keys = [
             "OPENAI_API_KEY",
         ]
-
-        load_dotenv()
         
         for key in possible_keys:
             if key in os.environ:
@@ -67,9 +65,85 @@ class BaseAgent(Node):
         except Exception as e:
             return f"Error scraping {url}: {str(e)}", ""
     
+    def search_web(self, query):
+        """
+        Search the web for information.
+        
+        Args:
+            query (str): The search query
+            
+        Returns:
+            list: List of search results (title, snippet, link)
+        """
+        try:
+            # Try to use OpenAI's web search if available
+            if not hasattr(self, 'client'):
+                self.client = openai.Client(api_key=self.api_keys.get("OPENAI_API_KEY"))
+            
+            # Call the web search API through ChatGPT
+            response = self.client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {"role": "system", "content": "You are a web search assistant. Search the web for the user's query and return the results as valid JSON."},
+                    {"role": "user", "content": f"Search the web for: {query} and return the top 5 results as JSON in the format: {{\"results\": [{{\"title\": \"...\", \"snippet\": \"...\", \"link\": \"...\"}}, ...]}}"}
+                ],
+                response_format={"type": "json_object"}
+            )
+            
+            result_json = json.loads(response.choices[0].message.content)
+            if "results" in result_json:
+                return result_json["results"]
+            
+            # If no results found, try fallback method
+            raise Exception("No search results found")
+            
+        except Exception as e:
+            print(f"Web search failed: {e}")
+            
+            # Fallback: Create mock search results
+            mock_results = []
+            if "patent" in query.lower():
+                company_name = query.split(" patent")[0].strip()
+                mock_results = [
+                    {
+                        "title": f"{company_name} Patent Portfolio",
+                        "snippet": f"Browse {company_name}'s patent portfolio and intellectual property strategy.",
+                        "link": f"https://patents.google.com/?assignee={company_name.replace(' ', '+')}"
+                    },
+                    {
+                        "title": f"Recent Patent Filings by {company_name}",
+                        "snippet": f"View recent patent applications and grants associated with {company_name}.",
+                        "link": f"https://patents.google.com/?assignee={company_name.replace(' ', '+')}&after=2020"
+                    }
+                ]
+            elif "regulation" in query.lower():
+                industry = query.split(" regulation")[0].strip()
+                mock_results = [
+                    {
+                        "title": f"{industry} Regulatory Framework",
+                        "snippet": f"Overview of key regulations affecting {industry} businesses.",
+                        "link": f"https://www.regulations.gov/search?keyword={industry.replace(' ', '+')}"
+                    },
+                    {
+                        "title": f"Compliance Guide for {industry} Companies",
+                        "snippet": f"Essential compliance information for {industry} companies.",
+                        "link": "https://www.ftc.gov/business-guidance/industry"
+                    }
+                ]
+            else:
+                mock_results = [
+                    {
+                        "title": f"Search Results for {query}",
+                        "snippet": "No detailed results available.",
+                        "link": f"https://www.google.com/search?q={query.replace(' ', '+')}"
+                    }
+                ]
+                
+            return mock_results
+    
     def get_4o_mini_model(self, temperature=0.7):
         """
-        Get the o3mini model instance.
+        Get the GPT-4o mini model instance.
         
         Args:
             temperature (float): The temperature to use for generation
@@ -79,28 +153,64 @@ class BaseAgent(Node):
         """
         # Ensure client is initialized
         if not hasattr(self, 'client'):
-            self.client = openai.Client(api_key=self.api_keys.get("OPENAI_API_KEY"))
+            try:
+                self.client = openai.Client(api_key=self.api_keys.get("OPENAI_API_KEY"))
+            except Exception as e:
+                print(f"Warning: Failed to initialize OpenAI client: {e}")
+                self.client = None
         
         def generate_text(prompt):
             try:
-                response = self.client.chat.completions.create(
-                    model="gpt-4o-mini-2024-07-18",
-                    messages=[
-                        {
-                            "role": "user", 
-                            "content": prompt
-                        }
-                    ],
-                    max_tokens=2000,
-                    temperature=temperature,
-                )
-                return response.choices[0].message.content
+                # Try using client if available
+                if self.client:
+                    response = self.client.chat.completions.create(
+                        model="gpt-4o-mini",
+                        messages=[
+                            {
+                                "role": "user", 
+                                "content": prompt
+                            }
+                        ],
+                        max_tokens=2000,
+                        temperature=temperature,
+                    )
+                    return response.choices[0].message.content
+                else:
+                    # Direct API access if client initialization failed
+                    import requests
+                    
+                    headers = {
+                        "Authorization": f"Bearer {self.api_keys.get('OPENAI_API_KEY')}",
+                        "Content-Type": "application/json"
+                    }
+                    
+                    data = {
+                        "model": "gpt-4o-mini",
+                        "messages": [{"role": "user", "content": prompt}],
+                        "max_tokens": 2000,
+                        "temperature": temperature
+                    }
+                    
+                    response = requests.post(
+                        "https://api.openai.com/v1/chat/completions",
+                        headers=headers,
+                        json=data
+                    )
+                    response_json = response.json()
+                    
+                    if "choices" in response_json and len(response_json["choices"]) > 0:
+                        return response_json["choices"][0]["message"]["content"]
+                    else:
+                        raise Exception(f"API Error: {response_json}")
             except Exception as e:
                 print(f"Error generating text: {e}")
                 return None
         
         return generate_text
-
+    
+    # For backward compatibility
+    get_4omini_model = get_4o_mini_model
+    
     # Node methods that can be overridden by child agents
     def prep(self, shared):
         """

@@ -1,0 +1,253 @@
+{
+  "direct_competitors": [
+    {
+      "companyProfile": {
+        "name": "RentEye",
+        "yearFounded": "2018",
+        "headquarters": "Bia\u0142ystok, Podlaskie, Poland",
+        "website": "https://renteye.com/",
+        "fundingStage": "Not disclosed",
+        "lastFundedAmount": "Not available",
+        "totalFundsRaised": "Not available",
+        "lastValuation": "Not available",
+        "investors": []
+      },
+      "description": "RentEye offers a subscription-free noise monitoring system designed for short-term rental properties, featuring real-time monitoring and instant noise alerts while respecting guest privacy.",
+      "comparisons": {
+        "similarities": [
+          "Both RentEye and Minut focus on noise monitoring solutions for short-term rental properties.",
+          "Both companies emphasize guest privacy in their monitoring solutions.",
+          "Both target property owners and managers looking to maintain positive relationships with neighbors."
+        ],
+        "differences": [
+          "RentEye operates on a one-time purchase model without subscription fees, while Minut utilizes a subscription-based model.",
+          "RentEye's offerings are limited to noise monitoring, whereas Minut offers a comprehensive suite of features including occupancy monitoring and environmental tracking.",
+          "RentEye does not disclose any funding details, while Minut has raised $15 million in a Series B round and has significant user traction."
+        ]
+      },
+      "is_direct": true
+    }
+  ],
+  "indirect_competitors": [
+    {
+      "companyProfile": {
+        "name": "Deep Sentinel",
+        "yearFounded": "2016",
+        "headquarters": "Pleasanton, California",
+        "website": "https://www.deepsentinel.com",
+        "fundingStage": "Multiple funding rounds",
+        "lastFundedAmount": "$15 million",
+        "totalFundsRaised": "$22.4 million",
+        "lastValuation": "Not publicly disclosed",
+        "investors": [
+          "Intel Capital",
+          "Shasta Ventures",
+          "Slow Ventures",
+          "UP2398",
+          "Jason Calacanis' The Syndicate",
+          "Bezos Expeditions",
+          "Lux Capital"
+        ]
+      },
+      "description": "Deep Sentinel offers AI-powered security systems that combine high-definition cameras, artificial intelligence, and live remote monitoring by professional guards to provide proactive security solutions for residential properties and small to medium-sized businesses.",
+      "comparisons": {
+        "similarities": [
+          "Both companies operate in the security and monitoring space.",
+          "Both companies offer solutions aimed at property owners.",
+          "Both utilize technology to enhance security and monitoring capabilities."
+        ],
+        "differences": [
+          "Deep Sentinel focuses on active crime prevention through AI and live monitoring, while Minut emphasizes privacy-conscious monitoring for short-term rental properties.",
+          "Deep Sentinel utilizes AI-driven cameras and live guard intervention, whereas Minut provides hardware sensors that monitor environmental factors without using cameras.",
+          "Deep Sentinel targets residential and small to medium-sized business owners, while Minut serves short-term rental hosts."
+        ]
+      },
+      "is_direct": false
+    },
+    {
+      "companyProfile": {
+        "name": "Zeptive",
+        "yearFounded": "2019",
+        "headquarters": "145 S Bedford St, Burlington, Massachusetts, 01803, United States",
+        "website": "https://www.zeptive.com",
+        "fundingStage": "Pre-Seed",
+        "lastFundedAmount": "Not specified",
+        "totalFundsRaised": "Not specified",
+        "lastValuation": "Not available",
+        "investors": [
+          "Lever, Inc."
+        ]
+      },
+      "description": "Zeptive is a smart sensor company specializing in air monitoring technology to ensure healthier and safer environments, developing innovative detectors such as vape detectors and air quality monitors.",
+      "comparisons": {
+        "similarities": [
+          "Both companies develop sensor technologies aimed at ensuring safety and monitoring environments.",
+          "Both offer hardware solutions that integrate technology for user monitoring.",
+          "Both target environments that require vigilance, albeit in different contexts."
+        ],
+        "differences": [
+          "Zeptive focuses on air quality and vaping detection, while Minut specializes in monitoring solutions for short-term rental properties.",
+          "Zeptive targets a broad range of environments including schools and public spaces, whereas Minut specifically targets short-term rental hosts.",
+          "Zeptive is at a Pre-Seed funding stage with unspecified funding amounts, while Minut has raised a $15M Series B round."
+        ]
+      },
+      "is_direct": false
+    },
+    {
+      "companyProfile": {
+        "name": "DeviceThread",
+        "yearFounded": "2022",
+        "headquarters": "Plano, Texas, USA",
+        "website": "https://www.devicethread.com",
+        "fundingStage": "Seed",
+        "lastFundedAmount": "Not publicly disclosed",
+        "totalFundsRaised": "Not publicly disclosed",
+        "lastValuation": "Not publicly available",
+        "investors": [
+          "Impact Venture Capital",
+          "Techne Infiniti Ventures",
+          "Top Shelf Equity Partners"
+        ]
+      },
+      "description": "DeviceThread offers an AI-native platform designed for secure, unified, and scalable management of smart device infrastructure in the hospitality sector, including solutions like SmartAccess and SmartEntertainment.",
+      "comparisons": {
+        "similarities": [
+          "Both companies operate within the hospitality and property management space.",
+          "Each aims to enhance the guest experience through technology.",
+          "Both companies provide solutions that integrate with smart devices."
+        ],
+        "differences": [
+          "DeviceThread offers a comprehensive digital infrastructure platform while Minut focuses on property monitoring.",
+          "DeviceThread targets a broader audience in the hospitality industry, whereas Minut specifically caters to short-term rental hosts.",
+          "DeviceThread's main products include access control and entertainment systems, while Minut's core offering is a hardware IoT device for monitoring properties."
+        ]
+      },
+      "is_direct": false
+    },
+    {
+      "companyProfile": {
+        "name": "Holatek",
+        "yearFounded": "2011",
+        "headquarters": "Shenzhen, Guangdong, China",
+        "website": "http://www.jmgo.com",
+        "fundingStage": "Series E",
+        "lastFundedAmount": "$158 million",
+        "totalFundsRaised": "$244.53 million",
+        "lastValuation": "Not publicly disclosed",
+        "investors": [
+          "Alibaba Group",
+          "IDG Capital",
+          "36Kr Fund",
+          "Junsan Capital",
+          "Sunz Fund",
+          "Stone Capital",
+          "GF Xinde Investment",
+          "Beijing DZ Capital"
+        ]
+      },
+      "description": "Holatek specializes in smart home entertainment projectors, offering intelligent projection equipment systems that integrate AI technologies.",
+      "comparisons": {
+        "similarities": [
+          "Both companies utilize hardware technology to provide solutions.",
+          "Both have significant funding rounds supporting their business models.",
+          "Each company targets a specific market segment within the technology space."
+        ],
+        "differences": [
+          "Holatek focuses on home entertainment products, while Minut is geared towards property monitoring for short-term rentals.",
+          "Holatek's products include projectors and laser TVs; Minut's product is a monitoring device with a subscription service.",
+          "Holatek integrates advanced AI features like gesture recognition, whereas Minut prioritizes privacy in its monitoring solutions."
+        ]
+      },
+      "is_direct": false
+    },
+    {
+      "companyProfile": {
+        "name": "Den",
+        "yearFounded": "UNKNOWN",
+        "headquarters": "UNKNOWN",
+        "website": "UNKNOWN",
+        "fundingStage": "UNKNOWN",
+        "lastFundedAmount": "UNKNOWN",
+        "totalFundsRaised": "UNKNOWN",
+        "lastValuation": "UNKNOWN",
+        "investors": []
+      },
+      "description": "Den is a company that offers privacy-focused monitoring solutions for short-term rental hosts, though further details about its specific offerings are not available.",
+      "comparisons": {
+        "similarities": [
+          "Both companies focus on privacy-conscious monitoring solutions for short-term rentals.",
+          "Both provide devices that help property managers protect their properties.",
+          "Both companies emphasize the importance of guest privacy in their service offerings."
+        ],
+        "differences": [
+          "Minut offers an all-in-one device that monitors multiple factors including noise, occupancy, temperature, humidity, and cigarette smoke, while Den's specific product offerings are unclear.",
+          "Minut has a more established presence with 30,000 users in over 100 countries, whereas Den's user base is not defined.",
+          "Minut has completed a $15M Series B funding round, while Den's financial information is not available."
+        ]
+      },
+      "is_direct": false
+    },
+    {
+      "companyProfile": {
+        "name": "Resideo Technologies",
+        "yearFounded": "2018",
+        "headquarters": "Scottsdale, Arizona, USA",
+        "website": "https://www.resideo.com",
+        "fundingStage": "Publicly traded",
+        "lastFundedAmount": "N/A",
+        "totalFundsRaised": "N/A",
+        "lastValuation": "$3.26 billion",
+        "investors": [
+          "The Vanguard Group, Inc.",
+          "BlackRock Inc.",
+          "Renaissance Technologies LLC"
+        ]
+      },
+      "description": "Resideo Technologies, Inc. is a global provider of comfort, security, and energy management solutions for residential and commercial environments.",
+      "comparisons": {
+        "similarities": [
+          "Both companies operate in the smart home and security sectors.",
+          "Both offer products that enhance safety and security in residential properties.",
+          "Both have a focus on providing solutions for property management."
+        ],
+        "differences": [
+          "Resideo serves both residential and commercial markets, while Minut focuses specifically on short-term rental hosts.",
+          "Resideo offers a broad range of products including HVAC controls and water management solutions, whereas Minut provides privacy-focused IoT sensors.",
+          "Resideo operates on a product sales model through contractors and distributors, while Minut utilizes a subscription service in addition to hardware sales."
+        ]
+      },
+      "is_direct": false
+    },
+    {
+      "companyProfile": {
+        "name": "NAPCO Security Technologies",
+        "yearFounded": "1969",
+        "headquarters": "Amityville, New York, USA",
+        "website": "https://www.napcosecurity.com/",
+        "fundingStage": "Publicly traded",
+        "lastFundedAmount": "Not disclosed",
+        "totalFundsRaised": "Not disclosed",
+        "lastValuation": "$1.4 billion",
+        "investors": [
+          "Dimensional Fund Advisors LP",
+          "BlackRock Inc.",
+          "Vanguard Group Inc."
+        ]
+      },
+      "description": "NAPCO Security Technologies, Inc. specializes in high-technology electronic security solutions, providing a comprehensive suite of security products for diverse markets.",
+      "comparisons": {
+        "similarities": [
+          "Both companies operate within the security industry.",
+          "Each company offers monitoring solutions to their respective customer bases.",
+          "Both focus on technology-driven products to enhance security."
+        ],
+        "differences": [
+          "NAPCO provides a broad range of security solutions, while Minut focuses specifically on privacy-centric monitoring for short-term rentals.",
+          "NAPCO serves a diverse clientele across multiple sectors, whereas Minut targets the niche market of Airbnb hosts.",
+          "NAPCO is a publicly traded company with significant market capitalization, while Minut is a privately funded startup."
+        ]
+      },
+      "is_direct": false
+    }
+  ]
+}
